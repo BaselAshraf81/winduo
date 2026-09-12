@@ -136,7 +136,99 @@ code {
   border-radius: 50%;
 }
 
-/* --- The flat: first viewport ----------------------------------------- */
+/* --- Nav bar ---------------------------------------------------------- */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(13, 33, 53, 0.94);
+  border-bottom: 1px solid var(--blue-line);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.bar__inner {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: 0 var(--gap);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.bar__name {
+  font-size: 0.84rem;
+  color: var(--chalk-faint);
+  text-decoration: none;
+  white-space: nowrap;
+  flex: none;
+  transition: color 180ms var(--ease);
+}
+
+.bar__name:hover { color: var(--chalk-soft); }
+
+.bar__name strong {
+  color: var(--chalk-soft);
+  font-weight: 600;
+}
+
+.bar__links {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0 auto;
+}
+
+.bar__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--blue-line);
+  margin: 0 0.4rem;
+  flex: none;
+}
+
+.bar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--chalk-soft);
+  border-radius: 2px;
+  transition: color 180ms var(--ease), background 180ms var(--ease);
+  white-space: nowrap;
+}
+
+.bar__link:hover { color: var(--chalk); background: rgba(255, 255, 255, 0.06); }
+.bar__link:focus-visible { outline: 2px solid var(--oxide-lift); }
+
+/* The primary download stands out slightly but does not shout. */
+.bar__link--primary {
+  color: var(--oxide-lift);
+}
+
+.bar__link--primary:hover { color: var(--oxide-lift); background: rgba(210, 84, 44, 0.12); }
+
+/* Support links are quieter than navigation; they should not compete for eye. */
+.bar__link--dim { color: var(--chalk-faint); }
+.bar__link--dim:hover { color: var(--chalk-soft); }
+
+/* On narrow screens, collapse the attribution to just the icon by hiding the
+   text, and drop the divider. */
+@media (max-width: 35rem) {
+  .bar__name { display: none; }
+  .bar__divider { display: none; }
+  .bar__links { margin-left: auto; }
+}
+
+@media (max-width: 28rem) {
+  .bar__link--dim { display: none; }
+}
 
 .flat {
   position: relative;
@@ -640,7 +732,7 @@ code {
 
 @media (min-width: 62rem) {
   .bay { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); }
-  .bay--stack, .bay--quiet, .bay--limits, .bay--close { grid-template-columns: 1fr; }
+  .bay--stack, .bay--quiet, .bay--limits, .bay--close, .bay--try { grid-template-columns: 1fr; }
 }
 
 .bay__measure { max-width: var(--measure); }
