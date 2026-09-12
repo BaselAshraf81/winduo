@@ -26,12 +26,39 @@ from winduo.render.shaders import FRAGMENT, VERTEX
 
 log = get_logger("overlay")
 
-__all__ = ["DepthOverlay", "FrameParams", "configure_surface"]
+__all__ = ["DepthOverlay", "FrameParams", "configure_surface", "flip_safe_geometry"]
 
 #: Black margin around the picture, in points. Kept above the largest blur
 #: radius the settings allow, so the blur always reaches real black on every
 #: side instead of smearing the edge pixel outward.
 PADDING_POINTS = 120.0
+
+
+def flip_safe_geometry(screen_rect):
+    """The window rectangle to use, one pixel taller than the display.
+
+    This looks like a superstition and is not. A window whose rectangle exactly
+    matches the monitor gets promoted by the desktop compositor to an
+    independent flip: its surface is handed to the display directly instead of
+    being composited with everything else. DXGI Desktop Duplication then
+    duplicates *that surface* rather than the composed desktop, and
+    ``SetWindowDisplayAffinity`` never gets a say, because the composition it
+    would have applied to is being bypassed.
+
+    The result is a feedback loop. The app captures its own transparent overlay,
+    draws that, captures the result, and the screen goes black and stays black.
+
+    One pixel of mismatch is enough to keep the window composited. Measured on
+    Intel UHD 630: an exactly fullscreen overlay duplicates its own surface,
+    while one a pixel taller duplicates the desktop. Growing downward puts the
+    extra row below the visible area, so nothing on screen is uncovered; the
+    alternative of shrinking by a pixel leaves a visible strip of untouched
+    desktop along one edge.
+
+    The exclusion is still doing the real work: without it, a correctly
+    composited overlay is captured like any other window.
+    """
+    return screen_rect.adjusted(0, 0, 0, 1)
 
 
 def configure_surface() -> None:
@@ -342,8 +369,12 @@ class DepthOverlay:
         window.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, True)
         window.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
         window.setWindowOpacity(0.0)
-        window.setGeometry(geometry_rect)
+        window.setGeometry(flip_safe_geometry(geometry_rect))
 
+        # The view stays exactly the size of the display, anchored at the top of
+        # a window that is one pixel taller. The spare row falls below the
+        # visible area, so the drawn picture lines up with the screen and
+        # gl_FragCoord needs no offset.
         view = _DepthView(window)
         view.setGeometry(0, 0, geometry_rect.width(), geometry_rect.height())
         view.configure(screen_size, picture_size)
@@ -382,13 +413,13 @@ class DepthOverlay:
         if self._window is None or self._view is None:
             return
         if self._configured == (screen_size, picture_size):
-            self._window.setGeometry(geometry_rect)
+            self._window.setGeometry(flip_safe_geometry(geometry_rect))
             self._view.setGeometry(0, 0, geometry_rect.width(), geometry_rect.height())
             return
         log.info(
             "overlay reconfigured for %s at %s", screen_size, picture_size
         )
-        self._window.setGeometry(geometry_rect)
+        self._window.setGeometry(flip_safe_geometry(geometry_rect))
         self._view.setGeometry(0, 0, geometry_rect.width(), geometry_rect.height())
         self._view.configure(screen_size, picture_size)
         self._configured = (screen_size, picture_size)

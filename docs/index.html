@@ -3,17 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WinDuo — the screen leans away as the lid closes</title>
-<meta name="description" content="Close your laptop lid and the screen tilts, blurs, and dims. WinDuo works out the lid angle from the webcam, so it runs on laptops with no hinge sensor.">
+
+<title>WinDuo: the iPhone Duo fold effect on any Windows laptop</title>
+<meta name="description" content="Close your laptop and the screen leans away, blurring and dimming, like an iPhone Duo folding shut. Apple uses a hinge. Mac Duo uses the MacBook's lid angle sensor. Your laptop has neither, so WinDuo reads the angle from your webcam. Free and open source.">
+<link rel="canonical" href="https://winduo.baselashraf.com/">
+<meta name="author" content="Basel Ashraf">
 <meta name="theme-color" content="#123049">
-<meta property="og:title" content="WinDuo">
-<meta property="og:description" content="The screen leans away as the lid closes. Lid angle from the webcam, no hinge sensor required.">
+
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="WinDuo">
+<meta property="og:title" content="WinDuo: the iPhone Duo fold effect on any Windows laptop">
+<meta property="og:description" content="Apple needed a hinge. Mac Duo needed a lid angle sensor. WinDuo needs a webcam.">
+<meta property="og:url" content="https://winduo.baselashraf.com/">
+<meta property="og:image" content="https://baselashraf.com/media/winduo-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A laptop screen leaning back on its hinge, the picture converging, blurring, and darkening toward its top edge.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://baselashraf.com/media/winduo-og.png">
+<meta name="twitter:creator" content="@BaselAshraf81">
+<meta name="twitter:title" content="WinDuo: the iPhone Duo fold effect on any Windows laptop">
+<meta name="twitter:description" content="Apple needed a hinge. Mac Duo needed a lid angle sensor. WinDuo needs a webcam.">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "WinDuo",
+  "url": "https://winduo.baselashraf.com/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows 10 version 2004 or later, Windows 11",
+  "description": "Brings the iPhone Duo fold transition to Windows laptops. The screen tilts, blurs, and dims as the lid closes. The lid angle is recovered from the webcam by measuring vertical image shift, so no hinge angle sensor is required.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "author": { "@type": "Person", "name": "Basel Ashraf", "url": "https://baselashraf.com/" },
+  "license": "https://www.apache.org/licenses/LICENSE-2.0",
+  "codeRepository": "https://github.com/BaselAshraf81/winduo",
+  "isBasedOn": "https://github.com/sumimakito/Mac-Duo"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does WinDuo need a lid angle sensor?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Almost no laptop outside recent MacBooks has one. WinDuo recovers the lid angle from the webcam instead: the camera is mounted in the lid, so closing the lid slides the whole camera image vertically by a predictable amount, roughly fifteen pixels per degree." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is WinDuo recording me?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Each camera frame is compared with the frame before it and then discarded. Nothing is written to disk and nothing leaves the machine. The camera indicator light stays lit while WinDuo runs, because the app has to be watching before the lid starts moving." }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the iPhone Duo fold effect?",
+      "acceptedAnswer": { "@type": "Answer", "text": "On Apple's iPhone Duo, the interface blurs and stretches under perspective as the phone folds between its two displays, so the change in shape feels continuous rather than abrupt. Mac Duo brought the same effect to MacBooks using the lid angle sensor. WinDuo brings it to Windows laptops without one." }
+    },
+    {
+      "@type": "Question",
+      "name": "Which versions of Windows does WinDuo support?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Windows 10 version 2004 or later, and Windows 11. Keeping the overlay out of its own screen capture needs an API introduced in that build, and there is no workaround on older versions." }
+    }
+  ]
+}
+</script>
+
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Archivo:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+
+<!--
+  Google tag (gtag.js), the same Measurement ID as every other property on
+  baselashraf.com. GA4 sets its cookies on the registrable root domain, so this
+  subdomain lands in the same property and the same sessions as the rest of the
+  site without any cross-domain linker configuration.
+-->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GM71X3G33E"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag() { dataLayer.push(arguments); }
+  gtag("js", new Date());
+  gtag("config", "G-GM71X3G33E");
+</script>
 </head>
 <body>
 <!--
@@ -49,12 +125,12 @@
     <div class="flat__say">
       <h1 class="wordmark">WinDuo</h1>
       <p class="lede">
-        Close your laptop lid and the screen leans away from you, blurring and
-        dimming as it goes.
+        Close your laptop and the screen leans away, blurring and dimming, the way
+        an <strong>iPhone&nbsp;Duo</strong> does as it folds shut.
       </p>
       <p class="lede lede--quiet">
-        It reads the angle from your webcam, so it works on laptops that have no
-        hinge sensor. Which is nearly all of them.
+        Apple has a hinge to read. Mac&nbsp;Duo has the MacBook's lid angle
+        sensor. Your laptop has neither, so WinDuo watches the webcam instead.
       </p>
 
       <div class="actions">
@@ -127,14 +203,45 @@
 
 <main id="read">
 
+  <!-- Passage 0: the lineage. Short, and it is the reason anyone is reading. -->
+  <section class="bay bay--quiet">
+    <div class="bay__wide">
+      <h2>Three devices, one effect, one missing sensor</h2>
+      <p class="statement">
+        Apple built the fold transition for a phone with a hinge it can measure.
+        The port to MacBooks read the lid angle sensor. Windows laptops do not have
+        one, and that is the whole problem worth solving.
+      </p>
+      <ol class="lineage">
+        <li>
+          <strong>iPhone Duo.</strong> Apple's first folding iPhone. As it opens and
+          closes, the interface blurs and stretches under perspective between the
+          two displays, so the change in shape reads as continuous instead of a
+          hard cut. It tracks the hinge the whole way, in both directions.
+        </li>
+        <li>
+          <strong>Mac Duo.</strong> Within days, an open-source Mac app put the
+          same effect on MacBook lids, driven by the lid angle sensor Apple has
+          shipped since the 2019 16-inch MacBook Pro.
+        </li>
+        <li>
+          <strong>WinDuo.</strong> This one. The same effect on Windows, and the
+          first version that needs no angle sensor at all.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <hr class="snap" aria-hidden="true">
+
   <!-- Passage 1: the mechanism. Prose-led, one drawn diagram. -->
   <section class="bay">
     <div class="bay__measure">
-      <h2>There is no sensor to read, so it watches instead</h2>
+      <h2>No sensor to read, so it watches instead</h2>
       <p>
-        <a href="https://github.com/sumimakito/Mac-Duo">Mac Duo</a> does this on a
-        MacBook by reading a hinge angle sensor over HID. Almost nothing outside
-        recent MacBooks has that sensor, and there is no software way to add one.
+        <a href="https://github.com/sumimakito/Mac-Duo">Mac Duo</a> reads a hinge
+        angle sensor over HID. Almost nothing outside recent MacBooks has that
+        sensor, and there is no software way to add one.
       </p>
       <p>
         A hinge is a single axis, though, and the camera sits on the far side of

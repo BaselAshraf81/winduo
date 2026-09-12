@@ -564,6 +564,42 @@ code {
   text-wrap: balance;
 }
 
+/* The lineage. A genuine sequence, so the numerals carry information. */
+.lineage {
+  list-style: none;
+  counter-reset: step;
+  margin: 2.2rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.lineage li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 2.6rem 1fr;
+  gap: 1rem;
+  padding: 1.3rem 0;
+  border-top: 1px solid var(--blue-line);
+  color: var(--chalk-soft);
+  font-size: 0.98rem;
+}
+
+.lineage li::before {
+  content: counter(step);
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 0.82;
+  color: var(--oxide);
+}
+
+.lineage strong { color: var(--chalk); font-weight: 600; }
+
+/* The one this page is about. */
+.lineage li:last-child { border-bottom: 1px solid var(--blue-line); }
+.lineage li:last-child::before { color: var(--chalk); }
+
 .aside {
   max-width: 44rem;
   padding-left: 1.2rem;

@@ -88,7 +88,11 @@ class _DxcamBackend(Backend):
         camera.start(target_fps=fps, video_mode=True)
         self._camera = camera
 
-        deadline = time.monotonic() + 2.0
+        # Generous, because this is not just driver startup. Bringing the overlay
+        # up counts as a desktop change, and duplication answers an access-loss
+        # recovery before it hands over a first frame. Two seconds was not enough
+        # on Intel integrated graphics.
+        deadline = time.monotonic() + 6.0
         while time.monotonic() < deadline:
             frame = camera.get_latest_frame()
             if frame is not None:
