@@ -133,26 +133,108 @@
         sensor. Your laptop has neither, so WinDuo watches the webcam instead.
       </p>
 
+      <!--
+        A details element rather than a scripted menu, so the options work with
+        scripting off and stay keyboard operable for free.
+      -->
       <div class="actions">
-        <a class="button button--primary" href="https://github.com/BaselAshraf81/winduo/releases">
-          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7.5 8 11l3.5-3.5"/><path d="M2.5 13.5h11"/></svg>
-          Download for Windows
-        </a>
+        <details class="grab">
+          <summary class="button button--primary">
+            <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7.5 8 11l3.5-3.5"/><path d="M2.5 13.5h11"/></svg>
+            Get WinDuo
+            <svg class="icon grab__chevron" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 8 10.5l4-4"/></svg>
+          </summary>
+          <div class="grab__menu">
+            <a class="grab__option" href="https://github.com/BaselAshraf81/winduo/releases/latest">
+              <span class="grab__name">Download the app</span>
+              <span class="grab__note">
+                A single <code>WinDuo.exe</code>. Nothing else to install, no
+                Python, no command line. Start here.
+              </span>
+            </a>
+            <a class="grab__option" href="#install">
+              <span class="grab__name">Install with pip</span>
+              <span class="grab__note">
+                For anyone who already has Python and would rather run from
+                source.
+              </span>
+            </a>
+          </div>
+        </details>
         <a class="button" href="https://github.com/BaselAshraf81/winduo">
           <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 .8a7.2 7.2 0 0 0-2.28 14.03c.36.07.49-.16.49-.35v-1.24c-2 .44-2.42-.85-2.42-.85-.33-.83-.8-1.05-.8-1.05-.65-.45.05-.44.05-.44.72.05 1.1.74 1.1.74.64 1.1 1.68.78 2.09.6.06-.47.25-.79.46-.97-1.6-.18-3.28-.8-3.28-3.56 0-.79.28-1.43.74-1.94-.07-.18-.32-.91.07-1.9 0 0 .6-.19 1.97.74a6.85 6.85 0 0 1 3.59 0c1.37-.93 1.97-.74 1.97-.74.39.99.14 1.72.07 1.9.46.51.74 1.15.74 1.94 0 2.77-1.69 3.38-3.3 3.56.26.22.49.66.49 1.33v1.97c0 .19.13.42.5.35A7.2 7.2 0 0 0 8 .8Z"/></svg>
           Source
         </a>
       </div>
       <p class="fineprint">
-        Windows 10 version 2004 or later. Apache 2.0. No account, no telemetry.
+        Windows 10 version 2004 or later. Apache 2.0. Free, no account, no
+        telemetry. Built by
+        <a href="https://baselashraf.com">Basel Ashraf</a>.
       </p>
     </div>
 
     <!--
-      The demonstration. A screen hinged on its bottom edge, warped with real
-      perspective, blurred in a gradient by stacked masked layers, and dimmed
-      from the hinge upward. Same three things the shader does.
+      Screen recording of the real effect.
+      ------------------------------------
+      Drop the file in as docs/demo.mp4 (and optionally docs/demo.webm) and it
+      appears here with no other change needed. Until then the poster frame
+      stands in, so the slot never renders as a broken element.
+
+      Recorded at 16:10 to match the frame below it. Muted, loop, and playsinline
+      so it behaves like a figure rather than a media player, and preload
+      metadata so it costs nothing until someone presses play. Deliberately not
+      autoplaying: it sits beside an interactive demo that already moves, and two
+      things moving in one viewport is one too many.
     -->
+    <figure class="reel">
+      <div class="reel__frame">
+        <video
+          class="reel__video"
+          controls
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          poster="poster.png"
+          width="1600"
+          height="1000"
+        >
+          <source src="demo.webm" type="video/webm">
+          <source src="demo.mp4" type="video/mp4">
+          <p class="reel__fallback">
+            Your browser cannot play the recording.
+            <a href="demo.mp4">Download it instead</a>, or scroll on for a live
+            version you can drag.
+          </p>
+        </video>
+      </div>
+      <figcaption>
+        A lid closing, recorded on a Windows laptop with no angle sensor.
+      </figcaption>
+    </figure>
+  </div>
+
+  <hr class="snap snap--foot" aria-hidden="true">
+</header>
+
+<main id="read">
+
+  <!--
+    The interactive demonstration. A screen hinged on its bottom edge, warped
+    with real perspective, blurred in a gradient by stacked masked layers, and
+    dimmed from the hinge upward. The same three things the shader does.
+  -->
+  <section class="bay bay--try">
+    <div class="bay__measure">
+      <h2>Or try it on this page</h2>
+      <p>
+        Not a video and not a mock-up. The panel below is real content being put
+        through the same three operations the app applies to your screen:
+        perspective, a blur that grows toward the far edge, and dimming from the
+        hinge upward.
+      </p>
+    </div>
+
     <figure class="stage" id="stage">
       <figcaption class="stage__label">Drag to close the lid</figcaption>
 
@@ -196,12 +278,9 @@
         Or just scroll. The page does the same thing the app does.
       </p>
     </figure>
-  </div>
+  </section>
 
-  <hr class="snap snap--foot" aria-hidden="true">
-</header>
-
-<main id="read">
+  <hr class="snap" aria-hidden="true">
 
   <!-- Passage 0: the lineage. Short, and it is the reason anyone is reading. -->
   <section class="bay bay--quiet">
@@ -212,21 +291,33 @@
         The port to MacBooks read the lid angle sensor. Windows laptops do not have
         one, and that is the whole problem worth solving.
       </p>
+      <!--
+        Each item's prose is wrapped in a div on purpose. The li is a two-column
+        grid, and bare inline content beside a <strong> would form a second
+        anonymous grid item, which lands in row two of the 2.6rem numeral column
+        and wraps to one word per line.
+      -->
       <ol class="lineage">
         <li>
-          <strong>iPhone Duo.</strong> Apple's first folding iPhone. As it opens and
-          closes, the interface blurs and stretches under perspective between the
-          two displays, so the change in shape reads as continuous instead of a
-          hard cut. It tracks the hinge the whole way, in both directions.
+          <div>
+            <strong>iPhone Duo.</strong> Apple's first folding iPhone. As it opens
+            and closes, the interface blurs and stretches under perspective between
+            the two displays, so the change in shape reads as continuous instead of
+            a hard cut. It tracks the hinge the whole way, in both directions.
+          </div>
         </li>
         <li>
-          <strong>Mac Duo.</strong> Within days, an open-source Mac app put the
-          same effect on MacBook lids, driven by the lid angle sensor Apple has
-          shipped since the 2019 16-inch MacBook Pro.
+          <div>
+            <strong>Mac Duo.</strong> Within days, an open-source Mac app put the
+            same effect on MacBook lids, driven by the lid angle sensor Apple has
+            shipped since the 2019 16-inch MacBook Pro.
+          </div>
         </li>
         <li>
-          <strong>WinDuo.</strong> This one. The same effect on Windows, and the
-          first version that needs no angle sensor at all.
+          <div>
+            <strong>WinDuo.</strong> This one. The same effect on Windows, and the
+            first version that needs no angle sensor at all.
+          </div>
         </li>
       </ol>
     </div>
@@ -455,46 +546,60 @@
   <hr class="snap" aria-hidden="true">
 
   <!-- Close: anchored by the action, not a summary. -->
-  <section class="bay bay--close">
+  <section class="bay bay--close" id="install">
     <div class="bay__wide">
       <h2>Try it on your own screen</h2>
       <p>
-        It lives in the notification area and has no main window. Run it once and
-        close the lid.
-      </p>
-
-      <pre class="code"><code>pip install git+https://github.com/BaselAshraf81/winduo
-python -m winduo</code></pre>
-      <p>
-        The calibration wizard opens the first time. About twenty seconds, and
-        then it lives in the notification area.
-      </p>
-
-      <p class="fineprint">
-        No camera and no lid to hand? <code>python -m winduo --preview</code> plays
-        the effect once on whatever is on screen.
+        Two ways in. The app is one file and needs nothing else; the pip route is
+        there if you already have Python and would rather read the source first.
       </p>
 
       <div class="actions">
-        <a class="button button--primary" href="https://github.com/BaselAshraf81/winduo/releases">
-          Download for Windows
+        <a class="button button--primary" href="https://github.com/BaselAshraf81/winduo/releases/latest">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7.5 8 11l3.5-3.5"/><path d="M2.5 13.5h11"/></svg>
+          Download WinDuo.exe
         </a>
         <a class="button" href="https://github.com/BaselAshraf81/winduo">Read the source</a>
       </div>
+
+      <pre class="code"><code>pip install git+https://github.com/BaselAshraf81/winduo
+python -m winduo</code></pre>
+
+      <p>
+        Either way the calibration wizard opens the first time. About twenty
+        seconds, and after that it sits in the notification area.
+      </p>
+
+      <p class="fineprint">
+        No camera or lid to hand? <code>python -m winduo --preview</code> plays the
+        effect once on whatever is on screen.
+      </p>
     </div>
   </section>
 </main>
 
 <footer class="foot">
   <p>
+    Built by <a href="https://baselashraf.com">Basel Ashraf</a>.
+    <a href="https://github.com/BaselAshraf81/winduo">Source on GitHub</a>,
+    Apache 2.0.
+  </p>
+  <p>
     Ported from <a href="https://github.com/sumimakito/Mac-Duo">Mac Duo</a> by
     <a href="https://github.com/sumimakito">Makito</a>, whose geometry, shader,
-    and state machine are the originals. Apache 2.0.
+    and state machine are the originals. The webcam angle estimation is the new
+    part, because the sensor Mac Duo reads is the part that is missing.
   </p>
-  <p class="foot__quiet">
-    The angle estimation is the new part, because the sensor Mac Duo reads is the
-    part that is missing.
+
+  <p class="foot__quiet" id="support">
+    WinDuo is free and always will be. If it is worth a coffee:
   </p>
+  <ul class="support">
+    <li><a href="https://ko-fi.com/baselashraf" rel="noopener">Ko-fi</a></li>
+    <li><a href="https://paypal.me/baselashrafusd" rel="noopener">PayPal</a></li>
+    <li><a href="https://liberapay.com/BaselAshraf81/donate" rel="noopener">Liberapay</a></li>
+    <li><a href="https://airtm.me/theprofitking" rel="noopener">Airtm</a></li>
+  </ul>
 </footer>
 
 <script src="demo.js" defer></script>

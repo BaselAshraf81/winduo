@@ -75,7 +75,18 @@ def _screen_content(width: int, height: int) -> np.ndarray:
     return panel
 
 
-def compose(out: Path) -> Path:
+def compose(out: Path, lettering: bool = True, size: tuple[int, int] | None = None) -> Path:
+    """Draw the card.
+
+    ``lettering=False`` and a 16:10 size produce the video poster instead: the
+    same effect with no words on it. The social card cannot double as the poster,
+    because its own headline would sit inside the video frame, cropped by
+    object-fit and repeating the sentence directly above it.
+    """
+    global WIDTH, HEIGHT
+    if size is not None:
+        WIDTH, HEIGHT = size
+
     settings = Settings()
     gradient = BlurGradient()
     geometry = DepthGeometry()
@@ -94,7 +105,14 @@ def compose(out: Path) -> Path:
 
     # --- The screen, warped by the real geometry ------------------------
 
-    panel_w, panel_h = 560, 350
+    # The poster has the whole frame to itself, so the panel fills more of it.
+    if lettering:
+        panel_w, panel_h = 560, 350
+        origin_x, origin_y = 596, 112
+    else:
+        panel_w, panel_h = int(WIDTH * 0.62), int(WIDTH * 0.62 * 10 / 16)
+        origin_x = (WIDTH - panel_w) // 2
+        origin_y = int(HEIGHT * 0.16)
     panel = _screen_content(panel_w, panel_h)
 
     # Far enough into the close that the lean, the blur, and the dimming are all
@@ -151,7 +169,6 @@ def compose(out: Path) -> Path:
     # square_to_quad's rectangle corners are, in reading order, top-left,
     # top-right, bottom-right, bottom-left. The target list therefore has to be
     # reordered to match, not just flipped in y.
-    origin_x, origin_y = 596, 112
 
     def to_card(point: tuple[float, float]) -> tuple[float, float]:
         x, y = point
@@ -196,6 +213,11 @@ def compose(out: Path) -> Path:
 
     # --- Lettering -------------------------------------------------------
 
+    if not lettering:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(out), card)
+        return out
+
     face = cv2.FONT_HERSHEY_DUPLEX
     cv2.putText(card, "WinDuo", (74, 214), face, 3.4, CHALK, 6, cv2.LINE_AA)
     cv2.line(card, (78, 244), (214, 244), OXIDE, 5, cv2.LINE_AA)
@@ -228,8 +250,16 @@ def compose(out: Path) -> Path:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", type=Path, default=Path("docs/og.png"))
+    parser.add_argument(
+        "--poster",
+        action="store_true",
+        help="draw the 16:10 video poster instead: same effect, no words on it",
+    )
     options = parser.parse_args(argv)
-    path = compose(options.out)
+    if options.poster:
+        path = compose(options.out, lettering=False, size=(1600, 1000))
+    else:
+        path = compose(options.out)
     print(f"wrote {path} ({path.stat().st_size / 1000:.0f} kB)")
     return 0
 

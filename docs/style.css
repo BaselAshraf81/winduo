@@ -258,6 +258,112 @@ code {
 
 .icon { width: 1em; height: 1em; flex: none; }
 
+/* --- Download options ------------------------------------------------- */
+
+.grab { position: relative; }
+
+.grab > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.grab > summary::-webkit-details-marker { display: none; }
+
+.grab__chevron {
+  transition: transform 200ms var(--ease);
+  opacity: 0.8;
+}
+
+.grab[open] > summary .grab__chevron { transform: rotate(180deg); }
+
+.grab__menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  z-index: 10;
+  min-width: min(24rem, calc(100vw - 2 * var(--gap)));
+  background: var(--blue-deep);
+  border: 1.5px solid var(--blue-line);
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.8);
+}
+
+.grab__option {
+  display: block;
+  padding: 0.9rem 1.1rem;
+  text-decoration: none;
+  color: var(--chalk);
+  border-bottom: 1px solid var(--blue-line);
+  transition: background 180ms var(--ease);
+}
+
+.grab__option:last-child { border-bottom: 0; }
+
+.grab__option:hover,
+.grab__option:focus-visible {
+  background: rgba(244, 240, 230, 0.06);
+  color: var(--chalk);
+}
+
+.grab__name {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+/* The recommended route gets the working mark, so the choice is not a coin flip. */
+.grab__option:first-child .grab__name::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 0.5rem;
+  vertical-align: 0.28em;
+  border-radius: 50%;
+  background: var(--oxide);
+}
+
+.grab__note {
+  display: block;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--chalk-faint);
+}
+
+/* --- The recording --------------------------------------------------- */
+
+.reel { margin: 0; }
+
+.reel__frame {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--blue-deep);
+  border: 1px solid var(--blue-line);
+  overflow: hidden;
+  box-shadow: 0 26px 50px -24px rgba(0, 0, 0, 0.85);
+}
+
+.reel__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--blue-deep);
+}
+
+.reel__fallback {
+  padding: 1.2rem;
+  font-size: 0.9rem;
+  color: var(--chalk-soft);
+}
+
+.reel figcaption {
+  margin-top: 0.9rem;
+  font-size: 0.86rem;
+  color: var(--chalk-faint);
+}
+
 .fineprint {
   font-size: 0.86rem;
   color: var(--chalk-faint);
@@ -577,7 +683,9 @@ code {
 .lineage li {
   counter-increment: step;
   display: grid;
-  grid-template-columns: 2.6rem 1fr;
+  /* Exactly two columns, and exactly two items per row: the generated numeral
+   * and one wrapper div. The markup wraps each item's prose for that reason. */
+  grid-template-columns: 2.6rem minmax(0, 1fr);
   gap: 1rem;
   padding: 1.3rem 0;
   border-top: 1px solid var(--blue-line);
@@ -734,6 +842,36 @@ code {
 .code code { color: var(--linen); }
 
 .bay--close { padding-bottom: clamp(5rem, 12vh, 8rem); }
+
+/* --- Support --------------------------------------------------------- */
+
+.support {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  /* Same measure and centring as .foot p, which it sits directly beneath.
+   * Without this the list runs flush to the page edge while the prose above it
+   * is centred. */
+  max-width: 46rem;
+  margin: 1.1rem auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.support a {
+  display: inline-block;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--blue-line);
+  font-size: 0.88rem;
+  text-decoration: none;
+  color: var(--chalk-soft);
+  transition: border-color 180ms var(--ease), color 180ms var(--ease);
+}
+
+.support a:hover {
+  border-color: var(--oxide);
+  color: var(--chalk);
+}
 
 /* --- Foot ------------------------------------------------------------ */
 

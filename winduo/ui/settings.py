@@ -291,13 +291,31 @@ class SettingsWindow(QWidget):
         layout.addLayout(row)
 
         credit = QLabel(
-            'Ported from <a href="https://github.com/sumimakito/Mac-Duo" '
+            'Built by <a href="https://baselashraf.com" style="color:#6fa3c7;">'
+            "Basel Ashraf</a>. Ported from "
+            '<a href="https://github.com/sumimakito/Mac-Duo" '
             'style="color:#6fa3c7;">Mac Duo</a> by Makito. Apache 2.0.'
         )
         credit.setOpenExternalLinks(True)
+        credit.setWordWrap(True)
         credit.setFont(ui_font(8))
         credit.setProperty("role", "help")
         layout.addWidget(credit)
+
+        support = QLabel(
+            'Free, and staying free. If it is worth a coffee: '
+            '<a href="https://ko-fi.com/baselashraf" style="color:#6fa3c7;">Ko-fi</a>'
+            " &middot; "
+            '<a href="https://paypal.me/baselashrafusd" style="color:#6fa3c7;">PayPal</a>'
+            " &middot; "
+            '<a href="https://liberapay.com/BaselAshraf81/donate" '
+            'style="color:#6fa3c7;">Liberapay</a>'
+        )
+        support.setOpenExternalLinks(True)
+        support.setWordWrap(True)
+        support.setFont(ui_font(8))
+        support.setProperty("role", "help")
+        layout.addWidget(support)
 
         return footer
 

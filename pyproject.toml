@@ -9,7 +9,7 @@ description = "Lean the screen away as the laptop lid closes, using the webcam i
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "The WinDuo contributors" }]
+authors = [{ name = "Basel Ashraf", email = "hello@baselashraf.com" }]
 keywords = ["windows", "overlay", "opengl", "computer-vision", "laptop", "lid-angle"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -37,9 +37,11 @@ dependencies = [
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.urls]
-Homepage = "https://github.com/BaselAshraf81/winduo"
+Homepage = "https://winduo.baselashraf.com"
 Source = "https://github.com/BaselAshraf81/winduo"
 Issues = "https://github.com/BaselAshraf81/winduo/issues"
+Author = "https://baselashraf.com"
+Funding = "https://ko-fi.com/baselashraf"
 "Reference implementation" = "https://github.com/sumimakito/Mac-Duo"
 
 [project.gui-scripts]

@@ -8,6 +8,10 @@ Apple has a hinge to read. [Mac Duo](https://github.com/sumimakito/Mac-Duo) has 
 
 ## Install
 
+**Just want to use it:** download `WinDuo.exe` from the [latest release](https://github.com/BaselAshraf81/winduo/releases/latest). One file, nothing else to install, no Python. Windows will warn about an unrecognised app because the build is unsigned — choose *More info*, then *Run anyway*.
+
+**From source:**
+
 ```sh
 pip install git+https://github.com/BaselAshraf81/winduo
 python -m winduo
@@ -44,4 +48,10 @@ A Linux port is the biggest thing missing and the angle estimation carries over 
 
 ## Credit
 
+Built by **[Basel Ashraf](https://baselashraf.com)**.
+
 [Mac Duo](https://github.com/sumimakito/Mac-Duo) by [Makito](https://github.com/sumimakito) is the reference implementation. Its geometry, shader, and state machine are ported here rather than reinvented; [NOTICE](NOTICE) lists which files. The webcam angle estimation is the new part, because the sensor Mac Duo reads is the part that is missing.
+
+## Support
+
+WinDuo is free and always will be. If it is worth a coffee: [Ko-fi](https://ko-fi.com/baselashraf) · [PayPal](https://paypal.me/baselashrafusd) · [Liberapay](https://liberapay.com/BaselAshraf81/donate) · [Airtm](https://airtm.me/theprofitking)

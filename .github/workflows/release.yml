@@ -1,0 +1,68 @@
+name: Build the Windows app
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          pip install -e .
+          pip install pyinstaller==6.11.1
+
+      - name: Build
+        # One file, no console window. --collect-all covers the three packages
+        # that load binaries or plugins at runtime and are therefore invisible to
+        # PyInstaller's static import analysis: Qt's platform plugins, OpenCV's
+        # extension modules, and PyOpenGL's ctypes-loaded GL libraries.
+        run: >
+          pyinstaller
+          --onefile
+          --noconsole
+          --name WinDuo
+          --collect-all PyQt6
+          --collect-all cv2
+          --collect-all OpenGL
+          --collect-all dxcam
+          --exclude-module tkinter
+          --exclude-module matplotlib
+          winduo/__main__.py
+
+      - name: Check it starts
+        # --version exits before any window, camera, or GPU work, so it is a real
+        # check that the bundle imports cleanly on a machine with no dev setup.
+        run: ./dist/WinDuo.exe --version
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WinDuo-exe
+          path: dist/WinDuo.exe
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/WinDuo.exe
+          generate_release_notes: true
+          body: |
+            Download `WinDuo.exe` below. Nothing else to install.
+
+            Windows 10 version 2004 or later. The calibration wizard opens the
+            first time you run it and takes about twenty seconds.
+
+            Windows SmartScreen will warn about an unrecognised app, because this
+            build is unsigned. Choose **More info**, then **Run anyway**.
