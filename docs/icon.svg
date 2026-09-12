@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="WinDuo">
+  <!-- A painted flat hinged at its foot and leaning back: narrower at the top,
+       which is the whole effect in one shape. -->
+  <rect width="32" height="32" fill="#123049"/>
+  <g fill="none" stroke="#c6cdd2" stroke-width="1.6" stroke-linecap="round">
+    <path d="M4 25h24"/>
+  </g>
+  <path d="M6.5 25 L25.5 25 L21.5 7 L10.5 7 Z" fill="#d2542c"/>
+  <path d="M9 16 H23" stroke="#1c1a17" stroke-width="1.2" opacity="0.75"/>
+</svg>

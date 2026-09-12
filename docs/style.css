@@ -1,0 +1,715 @@
+/* WinDuo — scene painter's flat.
+ *
+ * Prussian blue distemper at page scale, chalk snap-lines struck across it,
+ * oxide red as the only saturated mark. Rules and graticules are drawn; there
+ * are no cards anywhere in this sheet.
+ */
+
+:root {
+  /* Distemper blue, mixed three ways. The ground carries the page. */
+  --blue-deep: #0d2135;
+  --blue: #123049;
+  --blue-lift: #1a3d59;
+  --blue-line: #2d5875;
+
+  /* Chalk, struck and rubbed back. All three pass AA on --blue. */
+  --chalk: #f4f0e6;      /* 12.4:1 */
+  --chalk-soft: #c6cdd2;  /* 7.8:1 */
+  --chalk-faint: #93a3af; /* 4.6:1 */
+
+  /* Oxide red, the working mark. Only ever on the blue, never as body text. */
+  --oxide: #d2542c;
+  --oxide-lift: #ea6c3f;
+  --linen: #d9cdb4;
+
+  --measure: 34rem;
+  --gap: clamp(1.5rem, 4vw, 4rem);
+  --bay-y: clamp(4.5rem, 11vh, 9rem);
+
+  --display: "Big Shoulders Display", "Arial Narrow", sans-serif;
+  --text: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Exponential ease-out. One curve for the whole sheet. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  margin: 0;
+  background: var(--blue);
+  color: var(--chalk);
+  font-family: var(--text);
+  font-size: clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* --- Type ------------------------------------------------------------- */
+
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  margin: 0;
+}
+
+h2 {
+  font-size: clamp(2.1rem, 1.4rem + 3vw, 3.6rem);
+  margin-bottom: 0.7em;
+}
+
+h3 {
+  font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.6rem);
+  margin-bottom: 0.35em;
+  letter-spacing: 0.005em;
+}
+
+p { margin: 0 0 1.1em; }
+p:last-child { margin-bottom: 0; }
+
+a {
+  color: var(--chalk);
+  text-decoration-color: var(--oxide);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18em;
+  transition: color 180ms var(--ease);
+}
+
+a:hover { color: var(--oxide-lift); }
+
+:focus-visible {
+  outline: 2px solid var(--oxide-lift);
+  outline-offset: 3px;
+}
+
+code {
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 0.88em;
+  color: var(--linen);
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 20;
+  background: var(--oxide);
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+  text-decoration: none;
+}
+
+.skip:focus { left: 0.6rem; top: 0.6rem; }
+
+/* --- Snap lines: the page's only divider ------------------------------ */
+
+.snap {
+  border: 0;
+  height: 1px;
+  margin: 0;
+  background: var(--blue-line);
+  position: relative;
+}
+
+/* A struck line has a mark where the chalk was pinned. */
+.snap::after {
+  content: "";
+  position: absolute;
+  left: clamp(1.5rem, 6vw, 6rem);
+  top: -2px;
+  width: 5px;
+  height: 5px;
+  background: var(--oxide);
+  border-radius: 50%;
+}
+
+/* --- The flat: first viewport ----------------------------------------- */
+
+.flat {
+  position: relative;
+  background:
+    radial-gradient(120% 90% at 18% 8%, var(--blue-lift) 0%, transparent 55%),
+    linear-gradient(178deg, var(--blue) 0%, var(--blue-deep) 100%);
+  isolation: isolate;
+}
+
+/* Canvas weave. A flat is stretched cloth, not a flat colour. */
+.flat__grain {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.5;
+  background-image:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.028) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 3px);
+}
+
+.snap--head { display: none; }
+
+.flat__inner {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 6rem) var(--gap) clamp(3.5rem, 9vh, 6.5rem);
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 5rem);
+  grid-template-columns: 1fr;
+  align-items: center;
+}
+
+@media (min-width: 62rem) {
+  .flat__inner {
+    grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
+    min-height: 100svh;
+  }
+}
+
+.wordmark {
+  font-size: clamp(4rem, 2rem + 11vw, 8.5rem);
+  font-weight: 800;
+  letter-spacing: -0.028em;
+  line-height: 0.82;
+  margin-bottom: 0.34em;
+}
+
+/* The sightline: the seat the painted illusion is built for. */
+.wordmark::after {
+  content: "";
+  display: block;
+  height: 3px;
+  width: 100%;
+  margin-top: 0.22em;
+  background: linear-gradient(90deg, var(--oxide) 0 22%, var(--blue-line) 22% 100%);
+}
+
+.lede {
+  font-size: clamp(1.16rem, 1rem + 0.7vw, 1.5rem);
+  line-height: 1.42;
+  max-width: 26ch;
+  margin-bottom: 0.85em;
+}
+
+.lede--quiet {
+  color: var(--chalk-soft);
+  font-size: clamp(1rem, 0.95rem + 0.25vw, 1.12rem);
+  line-height: 1.55;
+  max-width: 34ch;
+  margin-bottom: 1.9em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.78rem 1.35rem;
+  font-family: var(--text);
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--chalk);
+  border: 1.5px solid var(--blue-line);
+  background: transparent;
+  transition: border-color 200ms var(--ease), background 200ms var(--ease),
+              transform 200ms var(--ease), color 200ms var(--ease);
+}
+
+.button:hover {
+  color: var(--chalk);
+  border-color: var(--chalk-faint);
+  background: rgba(244, 240, 230, 0.06);
+}
+
+.button--primary {
+  background: var(--oxide);
+  border-color: var(--oxide);
+  color: #fff8f4;
+  /* Paint sits on the cloth: a real offset and a soft blur, not a halo. */
+  box-shadow: 0 3px 0 #9c3a1c, 0 10px 22px -10px rgba(0, 0, 0, 0.7);
+}
+
+.button--primary:hover {
+  background: var(--oxide-lift);
+  border-color: var(--oxide-lift);
+  color: #fff8f4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 #9c3a1c, 0 14px 26px -10px rgba(0, 0, 0, 0.7);
+}
+
+.button--primary:active { transform: translateY(1px); box-shadow: 0 1px 0 #9c3a1c; }
+
+.icon { width: 1em; height: 1em; flex: none; }
+
+.fineprint {
+  font-size: 0.86rem;
+  color: var(--chalk-faint);
+  max-width: 36ch;
+}
+
+/* --- The stage: the demonstration ------------------------------------ */
+
+.stage { margin: 0; }
+
+.stage__label,
+.dial__label {
+  font-family: var(--text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chalk-faint);
+}
+
+.stage__label { display: block; margin-bottom: 0.9rem; }
+
+/* Perspective on the room, not on the screen, so the hinge behaves like a
+ * hinge: the bottom edge stays put and the top edge recedes. */
+.stage__room {
+  position: relative;
+  perspective: 1500px;
+  perspective-origin: 50% 82%;
+  padding-bottom: 2.2rem;
+}
+
+.screen {
+  --travel: 0;            /* degrees closed, set by CSS animation or JS */
+  --lean: calc(var(--travel) * 1deg);
+  --progress: clamp(0, calc((var(--travel) - 8) / 30), 1);
+
+  position: relative;
+  aspect-ratio: 16 / 10;
+  transform-origin: 50% 100%;
+  /* Positive rotateX tips the top edge away from the viewer, so the far edge
+   * recedes and converges while the hinge edge stays put. Negative would lean
+   * the top toward the viewer and make it wider, which is a lid opening. */
+  transform: rotateX(var(--lean));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.screen__face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #0a0f14;
+  border: 1px solid var(--blue-line);
+  box-shadow: 0 26px 50px -24px rgba(0, 0, 0, 0.85);
+}
+
+/* Progressive blur, the same idea the shader uses: several copies at
+ * increasing softness, each masked to reveal a band further from the hinge. */
+.screen__layer {
+  position: absolute;
+  inset: 0;
+  background: inherit;
+}
+
+.screen__layer--sharp { background: #0f151c; }
+
+.screen__layer--soft,
+.screen__layer--softer,
+.screen__layer--softest {
+  backdrop-filter: blur(var(--b));
+  -webkit-backdrop-filter: blur(var(--b));
+  opacity: var(--progress);
+  -webkit-mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
+  mask-image: linear-gradient(to top, transparent var(--from), #000 var(--to));
+}
+
+.screen__layer--soft    { --b: 4px;  --from: 30%; --to: 58%; }
+.screen__layer--softer  { --b: 12px; --from: 52%; --to: 80%; }
+.screen__layer--softest { --b: 28px; --from: 72%; --to: 100%; }
+
+/* Dimming from the hinge upward.
+ *
+ * Held well short of the app's own maximum on purpose. The app takes the far
+ * edge to black, which is right when the lid is nearly shut and nobody is
+ * looking, but a demonstration that goes black has hidden the blur and the
+ * perspective it exists to show. Same shape, two thirds of the depth.
+ */
+.screen__dim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(4, 8, 12, 0.06) 0%, rgba(4, 8, 12, 0.86) 94%);
+  opacity: calc(var(--progress) * 0.78);
+}
+
+.paper {
+  padding: clamp(1rem, 3.4%, 2.2rem);
+  color: #cfd8de;
+  font-size: clamp(0.72rem, 0.55rem + 0.55vw, 0.94rem);
+  line-height: 1.5;
+}
+
+.paper__h {
+  font-family: var(--display);
+  font-size: 1.85em;
+  line-height: 1;
+  color: var(--chalk);
+  margin-bottom: 0.5em;
+}
+
+.paper p { margin-bottom: 0.75em; }
+
+.paper__rule {
+  height: 1px;
+  background: #2a3b48;
+  margin: 1.1em 0 !important;
+}
+
+/* Sits near the hinge, where nothing is ever blurred or dimmed, so the
+ * contrast against the far edge is visible in a single glance. */
+.paper__foot {
+  color: var(--linen);
+  margin-top: 1.4em;
+}
+
+.hinge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2.2rem;
+  height: 3px;
+  background: var(--oxide);
+  box-shadow: 0 0 14px rgba(210, 84, 44, 0.5);
+}
+
+.base {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 1.5rem;
+  height: 0.7rem;
+  background: linear-gradient(180deg, var(--blue-lift), var(--blue-deep));
+  border: 1px solid var(--blue-line);
+  border-top: 0;
+  transform: perspective(600px) rotateX(58deg);
+  transform-origin: 50% 0;
+}
+
+/* --- The control ----------------------------------------------------- */
+
+.dial {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.6rem;
+}
+
+.dial__readout {
+  font-family: var(--display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--oxide-lift);
+  min-width: 3.2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.dial__input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 1.4rem;
+  background: transparent;
+  cursor: ew-resize;
+  margin: 0;
+}
+
+/* A degree graticule, struck into the groove. */
+.dial__input::-webkit-slider-runnable-track {
+  height: 2px;
+  background:
+    repeating-linear-gradient(90deg, var(--blue-line) 0 1px, transparent 1px 10%),
+    var(--blue-line);
+}
+
+.dial__input::-moz-range-track {
+  height: 2px;
+  background: var(--blue-line);
+}
+
+.dial__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -6.5px;
+  border-radius: 50%;
+  background: var(--chalk);
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+  transition: background 160ms var(--ease);
+}
+
+.dial__input::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--chalk);
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+
+.dial__input:hover::-webkit-slider-thumb { background: var(--oxide-lift); }
+.dial__input:hover::-moz-range-thumb { background: var(--oxide-lift); }
+
+.dial__note {
+  margin-top: 0.7rem;
+  font-size: 0.83rem;
+  color: var(--chalk-faint);
+}
+
+/* Scroll-driven, so the effect works with JavaScript switched off. The
+ * slider is the enhancement, not the other way round. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .screen {
+      animation: close linear both;
+      /* Root scroll rather than view(), so the start of the range is the top of
+       * the document. A view() timeline is already partway through when the
+       * element loads in the middle of the viewport, which would show a leaning
+       * screen next to a readout saying nothing has moved. */
+      animation-timeline: scroll(root block);
+      animation-range: 0 70vh;
+    }
+    /* Once the slider is touched, JS adds this and the scroll lets go. */
+    .stage[data-held="true"] .screen { animation: none; }
+  }
+}
+
+@keyframes close {
+  from { --travel: 0; }
+  to   { --travel: 42; }
+}
+
+@property --travel {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* No scroll timelines: show it part-closed, so a still image still makes the
+ * point. JavaScript, when present, takes over from here. */
+@supports not (animation-timeline: scroll()) {
+  .screen { --travel: 26; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen { --travel: 26; transition: none; }
+  .dial__note { display: none; }
+}
+
+/* --- Bays: the reading sections -------------------------------------- */
+
+.bay {
+  max-width: 78rem;
+  margin: 0 auto;
+  padding: var(--bay-y) var(--gap);
+  display: grid;
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: start;
+}
+
+@media (min-width: 62rem) {
+  .bay { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); }
+  .bay--stack, .bay--quiet, .bay--limits, .bay--close { grid-template-columns: 1fr; }
+}
+
+.bay__measure { max-width: var(--measure); }
+.bay__wide { max-width: 46rem; }
+
+.bay p { color: var(--chalk-soft); }
+.bay h2 { color: var(--chalk); }
+
+.bay--quiet {
+  background: var(--blue-deep);
+  max-width: none;
+  padding-inline: 0;
+}
+
+.bay--quiet > .bay__wide {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding-inline: var(--gap);
+}
+
+.statement {
+  font-family: var(--display);
+  font-size: clamp(1.45rem, 1.1rem + 1.6vw, 2.35rem);
+  line-height: 1.14;
+  color: var(--chalk) !important;
+  margin-bottom: 1.1em;
+  text-wrap: balance;
+}
+
+.aside {
+  max-width: 44rem;
+  padding-left: 1.2rem;
+  border-left: 1px solid var(--blue-line);
+  font-size: 0.95rem;
+  color: var(--chalk-faint) !important;
+}
+
+/* --- Plate: the sliding-frame diagram -------------------------------- */
+
+.plate { margin: 0; }
+
+.slide {
+  width: 100%;
+  max-width: 30rem;
+  height: auto;
+  display: block;
+}
+
+/* The scene slides up as one rigid piece, because that is what pitch does to
+ * an image. Nothing inside it moves relative to anything else. */
+.slide__scene {
+  animation: rise 5.5s var(--ease) infinite alternate;
+}
+
+@keyframes rise {
+  from { transform: translateY(46px); }
+  to   { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide__scene { animation: none; transform: translateY(14px); }
+}
+
+.plate figcaption,
+.stage figcaption:not(.stage__label) {
+  margin-top: 1rem;
+  font-size: 0.88rem;
+  color: var(--chalk-faint);
+  max-width: 34rem;
+}
+
+/* --- Steps ----------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  background: var(--blue-line);
+}
+
+@media (min-width: 52rem) {
+  .steps { grid-template-columns: repeat(3, 1fr); }
+}
+
+.step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  background: var(--blue);
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.2rem, 2.4vw, 1.9rem);
+}
+
+.step__num {
+  font-family: var(--display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 0.8;
+  color: var(--oxide);
+  margin: 0;
+  flex: none;
+}
+
+.step h3 { color: var(--chalk); }
+.step p { margin: 0; font-size: 0.94rem; }
+
+/* --- Limits ---------------------------------------------------------- */
+
+.limits {
+  margin: 0;
+  display: grid;
+  gap: 0;
+}
+
+@media (min-width: 52rem) {
+  .limits {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    column-gap: clamp(1.5rem, 4vw, 3.5rem);
+  }
+}
+
+.limits dt {
+  font-family: var(--display);
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: var(--chalk);
+  padding: 1.35rem 0 0.3rem;
+  border-top: 1px solid var(--blue-line);
+}
+
+.limits dd {
+  margin: 0;
+  padding: 1.35rem 0 1.5rem;
+  color: var(--chalk-soft);
+  font-size: 0.97rem;
+}
+
+@media (min-width: 52rem) {
+  .limits dd { border-top: 1px solid var(--blue-line); }
+  .limits dt { padding-bottom: 1.5rem; }
+}
+
+@media (max-width: 51.99rem) {
+  .limits dd { padding-top: 0.2rem; }
+}
+
+/* --- Code ------------------------------------------------------------ */
+
+.code {
+  margin: 0 0 1.4rem;
+  padding: 1.1rem 1.3rem;
+  background: var(--blue-deep);
+  border: 1px solid var(--blue-line);
+  border-left: 2px solid var(--oxide);
+  overflow-x: auto;
+  font-size: 0.94rem;
+  line-height: 1.75;
+}
+
+.code code { color: var(--linen); }
+
+.bay--close { padding-bottom: clamp(5rem, 12vh, 8rem); }
+
+/* --- Foot ------------------------------------------------------------ */
+
+.foot {
+  border-top: 1px solid var(--blue-line);
+  background: var(--blue-deep);
+  padding: clamp(2.5rem, 6vh, 4rem) var(--gap);
+}
+
+.foot p {
+  max-width: 46rem;
+  margin: 0 auto 0.6rem;
+  font-size: 0.92rem;
+  color: var(--chalk-soft);
+}
+
+.foot__quiet { color: var(--chalk-faint) !important; margin-bottom: 0 !important; }

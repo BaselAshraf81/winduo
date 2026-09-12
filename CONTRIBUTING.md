@@ -1,0 +1,54 @@
+# Contributing
+
+## Getting set up
+
+```sh
+pip install -e ".[dev]"
+pytest
+ruff check winduo tests
+```
+
+Tests need no camera, no screen, and no lid. If a change to `winduo/angle/` or `winduo/effect/` cannot be tested without hardware, the seam is in the wrong place: those modules take readings and timestamps as arguments precisely so a test can supply them.
+
+Two tools stand in for the things tests cannot reach:
+
+```sh
+python -m winduo.tools.render_still --out build/stills   # what the shader draws
+python -m winduo.tools.replay play clips/some-close.npz  # what the estimator makes of a real close
+```
+
+Please record a clip and replay it before and after any estimator change, and say in the pull request what the peak travel and trigger time were in each case. "Looks better on my laptop" is not something a reviewer can check.
+
+## The Linux port
+
+This is the largest thing WinDuo is missing, and it is a genuinely good project to take on. The angle estimation needs no work at all: `winduo/angle/tracker.py`, `estimator.py`, and `calibration.py` are OpenCV and numpy, and `camera.py` needs only its capture backend swapped for V4L2. The Windows-specific parts are the four below.
+
+**Screen capture.** `winduo/render/capture.py` already has a backend interface with two implementations behind it. A third would use the `xdg-desktop-portal` ScreenCast API over PipeWire, which is the only route that works under both Wayland and X11 and the only one that will keep working. Expect to negotiate a PipeWire stream and import buffers as dmabufs, and expect the portal's permission dialog on first run.
+
+**An overlay above everything, click-through.** Under Wayland this is `wlr-layer-shell` with the overlay layer and an empty input region, which works on wlroots compositors and Sway but not on GNOME, whose Mutter does not implement layer-shell. Under X11 it is an override-redirect window with an empty `XShape` input region.
+
+**Keeping the overlay out of its own capture.** This is the hard one, and the reason to look at it before writing any other code. `WDA_EXCLUDEFROMCAPTURE` has no portable equivalent. Under Wayland a compositor can be asked to exclude a surface only if it chooses to support it; the portal has no such concept. Without exclusion, a live picture captures the overlay and recurses. The honest fallback is to hold the single frame captured at the trigger, which `live_picture = false` already does and which still looks right, so a first Linux port should probably ship with live rendering disabled rather than blocked on solving this.
+
+**The lid switch.** `/proc/acpi/button/lid/*/state` on most machines, or the `SW_LID` evdev switch. Simpler than the Windows path.
+
+Keep the platform split at the module boundaries that already exist. `winduo/render/capture.py` picks a backend at runtime and `winduo/render/win32.py` is the only file that imports `ctypes.windll`. A `winduo/render/linux.py` beside it, with `main.py` choosing between them, is the shape to aim for.
+
+## Things that would help without a port
+
+- **Multiple displays.** The effect is primary-display only. Deciding what it should even do with two screens is most of the work.
+- **Reducing false positives from whole-laptop movement.** The roll and pan checks in `tracker.py` catch the obvious cases. Using a laptop on a train does not work. The flow field from lid rotation has a specific signature, since the camera swings on a known arc, and separating that from free movement of the whole machine is a real and tractable problem.
+- **Low light.** Short exposure in a dim room is noisy, and confidence drops out. Temporal denoising before correlation, or correlating on gradients rather than intensity, are both worth trying.
+- **Recorded clips.** A library of real closes from different cameras, rooms, and lighting would make every estimator change measurable instead of anecdotal. Clips carry no recognisable image, so they are safe to share.
+
+## Style
+
+Match what is there. A few things that are deliberate:
+
+- Comments explain why, not what. If a line needs a comment saying what it does, rename something instead. Where a value was chosen by measurement, the comment says what was measured.
+- Angles in `winduo/angle/` and `winduo/effect/` are degrees of travel away from neutral, never absolute lid angles. Anything that needs to know the true angle is a design mistake; the one exception is placing the eye for the perspective, which is forgiving, and it is marked.
+- Ported code says so at the top of the file and gets an entry in `NOTICE`.
+- User-facing text names the problem and the recovery. "The camera stopped sending frames" over "Error 0x80070005".
+
+## Reporting a problem
+
+`%APPDATA%\WinDuo\winduo.log` has the last few runs. Useful things to include: your Windows build number (`winver`), whether `python -m winduo --preview` works, and what the tray tooltip says. If the effect triggers when it should not, a recorded clip of the movement that triggered it is worth more than a description.

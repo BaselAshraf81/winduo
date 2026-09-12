@@ -1,0 +1,31 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+
+.pytest_cache/
+.coverage
+htmlcov/
+tests/.scratch/
+.scratch-run/
+
+# Recorded camera clips. Local measurement material, not source.
+clips/
+
+# The reference implementation, cloned for reading. Not vendored.
+mac-duo-ref/
+
+# Editor and agent tooling installed into the workspace, not project source.
+.kiro/
+.impeccable/
+skills-lock.json
+
+.vscode/
+.idea/
+*.log
+Thumbs.db
+desktop.ini

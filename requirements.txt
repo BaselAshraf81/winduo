@@ -1,0 +1,12 @@
+# Pinned runtime dependencies. `pip install -e .` reads pyproject.toml instead
+# and takes compatible ranges; this file exists for reproducing a known-good set.
+PyQt6==6.11.0
+PyOpenGL==3.1.10
+opencv-python==5.0.0.93
+numpy==2.5.3
+dxcam==0.3.0
+mss==10.2.0
+
+# Development only.
+pytest==9.1.1
+ruff==0.16.7

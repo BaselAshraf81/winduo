@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "winduo"
+version = "0.1.0"
+description = "Lean the screen away as the laptop lid closes, using the webcam instead of a hinge sensor"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "The WinDuo contributors" }]
+keywords = ["windows", "overlay", "opengl", "computer-vision", "laptop", "lid-angle"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Win32 (MS Windows)",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: Microsoft :: Windows :: Windows 10",
+    "Operating System :: Microsoft :: Windows :: Windows 11",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Desktop Environment",
+    "Topic :: Multimedia :: Graphics",
+]
+
+dependencies = [
+    "PyQt6>=6.6,<7",
+    "PyOpenGL>=3.1.7",
+    "opencv-python>=4.8",
+    "numpy>=1.26,<3",
+    "dxcam>=0.3",
+    "mss>=9.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/winduo/winduo"
+Source = "https://github.com/winduo/winduo"
+Issues = "https://github.com/winduo/winduo/issues"
+"Reference implementation" = "https://github.com/sumimakito/Mac-Duo"
+
+[project.gui-scripts]
+winduo = "winduo.main:main"
+
+[tool.setuptools.packages.find]
+include = ["winduo*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+# Qt call chains and OpenGL constant names are long by nature. 92 forced awkward
+# wrapping in the widget code for no gain in readability.
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "N", "SIM"]
+ignore = [
+    # Qt method names are fixed by the framework.
+    "N802",
+    # Assigning to a loop variable reads fine in the render loops.
+    "B007",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+"winduo/render/shaders.py" = ["E501"]
+# The ctypes structures deliberately carry the names the Windows API gives them,
+# so a reader can look them up.
+"winduo/angle/lidswitch.py" = ["N801"]

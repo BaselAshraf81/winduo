@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WinDuo — the screen leans away as the lid closes</title>
+<meta name="description" content="Close your laptop lid and the screen tilts, blurs, and dims. WinDuo works out the lid angle from the webcam, so it runs on laptops with no hinge sensor.">
+<meta name="theme-color" content="#123049">
+<meta property="og:title" content="WinDuo">
+<meta property="og:description" content="The screen leans away as the lid closes. Lid angle from the webcam, no hinge sensor required.">
+<meta property="og:type" content="website">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800&family=Archivo:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!--
+  THESIS: A painted flat is an image built to read correctly from one seat while
+  the surface it sits on angles away from the audience. That is exactly what this
+  app does to a screen, so the page performs the effect on its own content
+  instead of describing it. Refuses the OSS arrangement: dark hero, gradient
+  headline, three feature cards, badge row.
+  OWN-WORLD: Drenched Prussian blue distemper ground, chalk snap-lines struck
+  across it, oxide red as the working mark and the only saturated accent, raw
+  linen as a material note. Condensed wood-type display over a workhorse
+  grotesk. Rules and graticules are drawn, never boxed; there are no cards.
+  STORY: A Windows laptop owner sees the effect happen to this page, understands
+  it comes from the webcam rather than a sensor they do not have, believes the
+  measurement is sound because the failure cases are named, and downloads it.
+  FIRST VIEWPORT: Full-bleed blue flat. Chalk sightline struck horizontally at
+  one third. The wordmark and one sentence painted at left; at right a screen
+  hinged on its bottom edge, leaning back under real perspective with
+  progressive blur and dimming, driven by a degree-marked control directly
+  under it. Primary action sits on the sightline, left, above the fold.
+  FORM: Scene painter's anamorphic stage flat. Candidate 6 of 7 on my grounded
+  list, ordered by resonance. Seed key a822940d.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
+-->
+
+<a class="skip" href="#read">Skip to the explanation</a>
+
+<header class="flat" id="top">
+  <div class="flat__grain" aria-hidden="true"></div>
+  <hr class="snap snap--head" aria-hidden="true">
+
+  <div class="flat__inner">
+    <div class="flat__say">
+      <h1 class="wordmark">WinDuo</h1>
+      <p class="lede">
+        Close your laptop lid and the screen leans away from you, blurring and
+        dimming as it goes.
+      </p>
+      <p class="lede lede--quiet">
+        It reads the angle from your webcam, so it works on laptops that have no
+        hinge sensor. Which is nearly all of them.
+      </p>
+
+      <div class="actions">
+        <a class="button button--primary" href="https://github.com/winduo/winduo/releases">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8"/><path d="M4.5 7.5 8 11l3.5-3.5"/><path d="M2.5 13.5h11"/></svg>
+          Download for Windows
+        </a>
+        <a class="button" href="https://github.com/winduo/winduo">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="M8 .8a7.2 7.2 0 0 0-2.28 14.03c.36.07.49-.16.49-.35v-1.24c-2 .44-2.42-.85-2.42-.85-.33-.83-.8-1.05-.8-1.05-.65-.45.05-.44.05-.44.72.05 1.1.74 1.1.74.64 1.1 1.68.78 2.09.6.06-.47.25-.79.46-.97-1.6-.18-3.28-.8-3.28-3.56 0-.79.28-1.43.74-1.94-.07-.18-.32-.91.07-1.9 0 0 .6-.19 1.97.74a6.85 6.85 0 0 1 3.59 0c1.37-.93 1.97-.74 1.97-.74.39.99.14 1.72.07 1.9.46.51.74 1.15.74 1.94 0 2.77-1.69 3.38-3.3 3.56.26.22.49.66.49 1.33v1.97c0 .19.13.42.5.35A7.2 7.2 0 0 0 8 .8Z"/></svg>
+          Source
+        </a>
+      </div>
+      <p class="fineprint">
+        Windows 10 version 2004 or later. Apache 2.0. No account, no telemetry.
+      </p>
+    </div>
+
+    <!--
+      The demonstration. A screen hinged on its bottom edge, warped with real
+      perspective, blurred in a gradient by stacked masked layers, and dimmed
+      from the hinge upward. Same three things the shader does.
+    -->
+    <figure class="stage" id="stage">
+      <figcaption class="stage__label">Drag to close the lid</figcaption>
+
+      <div class="stage__room">
+        <div class="screen" id="screen">
+          <div class="screen__face">
+            <div class="screen__layer screen__layer--sharp">
+              <div class="paper">
+                <p class="paper__h">Notes on the hinge</p>
+                <p>The camera is bolted into the lid. When the lid turns, the
+                camera turns with it, about the same axis, by the same amount.</p>
+                <p>So closing the lid slides the whole image straight down the
+                frame, and the top of the view leaves through the edge. That
+                slide is the measurement.</p>
+                <p class="paper__rule"></p>
+                <p>Roughly fifteen pixels per degree, on an ordinary webcam. So
+                there is far more signal here than the effect needs.</p>
+                <p>Adding those shifts up would drift, so nothing tries to. Rest
+                becomes zero, and travel is measured from there.</p>
+                <p class="paper__foot">Sharp at the hinge, soft at the far edge.
+                Exactly what the shader does, in about forty lines.</p>
+              </div>
+            </div>
+            <div class="screen__layer screen__layer--soft" aria-hidden="true"></div>
+            <div class="screen__layer screen__layer--softer" aria-hidden="true"></div>
+            <div class="screen__layer screen__layer--softest" aria-hidden="true"></div>
+            <div class="screen__dim" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="hinge" aria-hidden="true"></div>
+        <div class="base" aria-hidden="true"></div>
+      </div>
+
+      <div class="dial">
+        <label class="dial__label" for="travel">Closed by</label>
+        <input class="dial__input" id="travel" type="range" min="0" max="46" value="0" step="0.5"
+               aria-describedby="travel-readout">
+        <output class="dial__readout" id="travel-readout" for="travel">0°</output>
+      </div>
+      <p class="dial__note" id="stage-note">
+        Or just scroll. The page does the same thing the app does.
+      </p>
+    </figure>
+  </div>
+
+  <hr class="snap snap--foot" aria-hidden="true">
+</header>
+
+<main id="read">
+
+  <!-- Passage 1: the mechanism. Prose-led, one drawn diagram. -->
+  <section class="bay">
+    <div class="bay__measure">
+      <h2>There is no sensor to read, so it watches instead</h2>
+      <p>
+        <a href="https://github.com/sumimakito/Mac-Duo">Mac Duo</a> does this on a
+        MacBook by reading a hinge angle sensor over HID. Almost nothing outside
+        recent MacBooks has that sensor, and there is no software way to add one.
+      </p>
+      <p>
+        A hinge is a single axis, though, and the camera sits on the far side of
+        it. Rotating the lid rotates the camera by the same amount, with no
+        panning and no rolling. Pitch alone moves the whole image vertically, so
+        the quantity to recover is one number per frame: how far the picture
+        slid.
+      </p>
+      <p>
+        Phase correlation on a pair of downscaled grey frames finds it in about
+        two hundred microseconds, and there is plenty of signal to find.
+      </p>
+    </div>
+
+    <figure class="plate">
+      <svg class="slide" viewBox="0 0 320 260" role="img"
+           aria-label="A camera frame with a room in it. As the lid closes the whole scene slides upward and the top of it passes out of the frame.">
+        <defs>
+          <clipPath id="frame-clip">
+            <rect x="8" y="8" width="230" height="200"/>
+          </clipPath>
+        </defs>
+
+        <!-- What the camera sees, sliding up as one piece. -->
+        <g clip-path="url(#frame-clip)">
+          <rect x="8" y="8" width="230" height="200" fill="#0d2135"/>
+          <g class="slide__scene" stroke-linecap="square" fill="none">
+            <!-- A window, a door frame, a desk edge, a lamp: the ordinary
+                 furniture a correlator actually locks onto. -->
+            <rect x="30" y="18" width="66" height="52" stroke="#c6cdd2" stroke-width="2"/>
+            <path d="M30 44h66M63 18v52" stroke="#93a3af" stroke-width="1"/>
+            <path d="M150 10v104" stroke="#c6cdd2" stroke-width="2"/>
+            <path d="M150 62h88" stroke="#93a3af" stroke-width="1.5"/>
+            <circle cx="196" cy="34" r="9" fill="#d2542c" stroke="none"/>
+            <path d="M196 43v14" stroke="#d2542c" stroke-width="1.5"/>
+            <path d="M8 124h230" stroke="#d9cdb4" stroke-width="2.5"/>
+            <path d="M40 124v34M120 124v34M210 124v34" stroke="#93a3af" stroke-width="1"/>
+            <path d="M8 176h230" stroke="#93a3af" stroke-width="1"/>
+          </g>
+          <!-- The band that has already left the frame. -->
+          <rect class="slide__gone" x="8" y="8" width="230" height="46"
+                fill="#0d2135" fill-opacity="0.86"/>
+          <path class="slide__gone" d="M8 54h230" stroke="#d2542c" stroke-width="1.5"
+                stroke-dasharray="5 4"/>
+        </g>
+
+        <rect x="8" y="8" width="230" height="200" fill="none"
+              stroke="#2d5875" stroke-width="1.5"/>
+
+        <!-- The direction of travel, and how much of it. -->
+        <g stroke="#d2542c" fill="none" stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round">
+          <path d="M276 176V56"/>
+          <path d="M268 68l8-12 8 12"/>
+        </g>
+        <g stroke="#2d5875" stroke-width="1">
+          <path d="M266 176h20M266 56h20"/>
+        </g>
+      </svg>
+      <figcaption>
+        The lid closes, the camera pitches down, and the scene rises out of the
+        top of the frame. That distance is the whole measurement.
+      </figcaption>
+    </figure>
+  </section>
+
+  <hr class="snap" aria-hidden="true">
+
+  <!-- Passage 2: the key idea. Quiet, wide, single column. Earned by the density above. -->
+  <section class="bay bay--quiet">
+    <div class="bay__wide">
+      <h2>Zero is wherever the lid last stopped</h2>
+      <p class="statement">
+        Adding up per-frame shifts drifts. So nothing here ever tries to know the
+        real angle. When the lid holds still, that position becomes zero, and the
+        effect runs on travel away from it.
+      </p>
+      <p>
+        Error then only accumulates for the length of one lid movement, a second
+        or two, and a fresh rest wipes it out. Which is also why it does not care
+        whether the laptop is on a desk, on your lap, or held at some angle you
+        would never call normal.
+      </p>
+      <p>
+        It removes a whole subsystem, too. Mac Duo needs a timeout setting to end
+        the effect when you stop the lid partway and leave it there, because an
+        absolute angle below the threshold stays below it forever. Here a stopped
+        lid becomes the new zero, travel collapses on its own, and the picture
+        eases back to flat without anything having to notice.
+      </p>
+    </div>
+  </section>
+
+  <hr class="snap" aria-hidden="true">
+
+  <!-- Passage 3: a real sequence, so the numbers carry information. -->
+  <section class="bay bay--stack">
+    <div class="bay__measure">
+      <h2>Twenty seconds of calibration</h2>
+      <p>
+        The camera measures pixels. Turning pixels into degrees needs one known
+        angle, and no amount of image processing supplies that, so WinDuo asks
+        for it once.
+      </p>
+    </div>
+
+    <ol class="steps">
+      <li class="step">
+        <p class="step__num" aria-hidden="true">1</p>
+        <div>
+          <h3>Your normal viewing position</h3>
+          <p>
+            Drag a silhouette until it matches the lid in front of you. Eyeballing
+            it against a door frame is close enough; a few degrees out is
+            invisible in the result.
+          </p>
+        </div>
+      </li>
+      <li class="step">
+        <p class="step__num" aria-hidden="true">2</p>
+        <div>
+          <h3>Roughly halfway down</h3>
+          <p>
+            One anchor in the middle fits the second-order term. Shift per degree
+            grows toward the edges of the frame, because the projection is a
+            tangent rather than a ratio.
+          </p>
+        </div>
+      </li>
+      <li class="step">
+        <p class="step__num" aria-hidden="true">3</p>
+        <div>
+          <h3>Closed</h3>
+          <p>
+            Windows' own lid switch says exactly when you get there, which gives a
+            known zero for free. If the machine does not report one, the camera
+            going dark against the keyboard does the same job.
+          </p>
+        </div>
+      </li>
+    </ol>
+
+    <p class="aside">
+      The camera also swings on an arc about twenty centimetres from the hinge, so
+      a degree of closing shifts it roughly three and a half millimetres sideways.
+      Against a wall a metre away that parallax adds about a fifth to the apparent
+      movement; at three metres, about a sixteenth. The error depends on how far
+      away your room is, which is why the wizard asks you to sit where you
+      normally sit rather than to measure anything.
+    </p>
+  </section>
+
+  <hr class="snap" aria-hidden="true">
+
+  <!-- Passage 4: limits, stated plainly. Trust comes from naming these. -->
+  <section class="bay bay--limits">
+    <div class="bay__measure">
+      <h2>What it will not do</h2>
+      <p>
+        Measuring rotation from a camera has failure cases, and hiding them would
+        only mean you found them yourself, later.
+      </p>
+    </div>
+
+    <dl class="limits">
+      <dt>The camera indicator stays lit</dt>
+      <dd>
+        It has to. The baseline has to exist before the lid starts moving. Each
+        frame is compared with the one before it and discarded; nothing is
+        recorded and nothing leaves the machine.
+      </dd>
+
+      <dt>Another app can take the camera</dt>
+      <dd>
+        A call in Zoom or Teams claims it exclusively, and WinDuo then cannot read
+        the lid. It says so in the tray rather than failing quietly.
+      </dd>
+
+      <dt>Picking the laptop up can trigger it</dt>
+      <dd>
+        Rotating the whole machine looks the same as closing the lid to anything
+        measuring the frame as a whole. Both halves of the image have to move
+        together for a reading to be trusted, which catches the common cases.
+        Using a laptop on a train is not one of them.
+      </dd>
+
+      <dt>A dark room costs accuracy</dt>
+      <dd>
+        Exposure is forced short, because a lid closing at 180° per second covers
+        six degrees inside one frame and ordinary indoor exposure smears that
+        across eighty pixels. Short shutter in a dim room is a noisy image, and
+        below a usable threshold the effect stays off rather than guessing.
+      </dd>
+
+      <dt>Windows, and the primary display</dt>
+      <dd>
+        Keeping the overlay out of its own capture needs an API that arrived in
+        Windows 10 version 2004, and it has no portable equivalent. A Linux port
+        is <a href="https://github.com/winduo/winduo/blob/main/CONTRIBUTING.md">written
+        up as a starting point</a>; the angle estimation carries over unchanged.
+      </dd>
+
+      <dt>The screen goes off when the lid shuts</dt>
+      <dd>
+        So the effect only ever plays during the closing travel. That is the part
+        worth watching, and it means no power settings need changing.
+      </dd>
+    </dl>
+  </section>
+
+  <hr class="snap" aria-hidden="true">
+
+  <!-- Close: anchored by the action, not a summary. -->
+  <section class="bay bay--close">
+    <div class="bay__wide">
+      <h2>Try it on your own screen</h2>
+      <p>
+        It lives in the notification area and has no main window. Run it once and
+        close the lid.
+      </p>
+
+      <pre class="code"><code>pip install winduo
+python -m winduo</code></pre>
+
+      <p class="fineprint">
+        No camera and no lid to hand? <code>python -m winduo --preview</code> plays
+        the effect once on whatever is on screen.
+      </p>
+
+      <div class="actions">
+        <a class="button button--primary" href="https://github.com/winduo/winduo/releases">
+          Download for Windows
+        </a>
+        <a class="button" href="https://github.com/winduo/winduo">Read the source</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>
+    Ported from <a href="https://github.com/sumimakito/Mac-Duo">Mac Duo</a> by
+    <a href="https://github.com/sumimakito">Makito</a>, whose geometry, shader,
+    and state machine are the originals. Apache 2.0.
+  </p>
+  <p class="foot__quiet">
+    The angle estimation is the new part, because the sensor Mac Duo reads is the
+    part that is missing.
+  </p>
+</footer>
+
+<script src="demo.js" defer></script>
+</body>
+</html>
