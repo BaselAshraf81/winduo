@@ -26,6 +26,21 @@ from winduo.ui.theme import Palette, label_font, ui_font
 __all__ = ["HoldMeter", "Rule", "SectionLabel", "SightlineDial", "SliderRow", "help_label"]
 
 
+class _ScrollSafeSlider(QSlider):
+    """A slider that refuses the wheel, so scrolling past it scrolls the page.
+
+    A ``QSlider`` accepts wheel events by default, which means a settings panel
+    inside a scroll area changes whatever value happens to be under the cursor
+    every time someone scrolls past it. Ignoring the event here does not
+    discard it: an ignored event propagates to the parent widget, which is the
+    scroll area, so the page keeps scrolling exactly as if the slider were not
+    there. Dragging and the arrow keys are unaffected.
+    """
+
+    def wheelEvent(self, event) -> None:  # noqa: N802
+        event.ignore()
+
+
 class Rule(QFrame):
     """A struck chalk line. Structure, not ornament."""
 
@@ -103,7 +118,7 @@ class SliderRow(QWidget):
         head.addWidget(self._reading)
         layout.addLayout(head)
 
-        self._slider = QSlider(Qt.Orientation.Horizontal)
+        self._slider = _ScrollSafeSlider(Qt.Orientation.Horizontal)
         self._slider.setRange(0, steps)
         self._slider.setSingleStep(1)
         self._slider.setPageStep(max(steps // 20, 1))

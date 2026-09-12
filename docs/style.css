@@ -292,9 +292,9 @@ code {
 .screen {
   --travel: 0;            /* degrees closed, set by CSS animation or JS */
   --lean: calc(var(--travel) * 1deg);
-  /* Trigger at 8 degrees, full strength 60 degrees later, matching the app's
+  /* Trigger at 10 degrees, full strength 60 degrees later, matching the app's
    * own defaults so the page is not advertising a ramp nobody gets. */
-  --progress: clamp(0, calc((var(--travel) - 8) / 60), 1);
+  --progress: clamp(0, calc((var(--travel) - 10) / 60), 1);
 
   position: relative;
   aspect-ratio: 16 / 10;

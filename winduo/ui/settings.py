@@ -167,7 +167,7 @@ class SettingsWindow(QWidget):
         )
 
         self._trigger = SliderRow(
-            "Fades in after", 2, 40, 8, suffix="\u00b0",
+            "Fades in after", 2, 40, 10, suffix="\u00b0",
             help_text="How far you can close before anything happens.",
         )
         self._trigger.changed.connect(lambda v: self._apply(trigger_travel=v))

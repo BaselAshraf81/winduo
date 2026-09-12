@@ -43,7 +43,7 @@ class Settings:
 
     # --- When the effect starts -----------------------------------------
     #: Degrees of closing away from neutral that start the effect.
-    trigger_travel: float = 8.0
+    trigger_travel: float = 10.0
     #: Further degrees of closing to reach full strength.
     #:
     #: 60 matches the reference implementation's ramp rate, and it is worth not

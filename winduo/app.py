@@ -64,6 +64,13 @@ class Engine(QObject):
 
     #: Emitted when the status the interface shows may have changed.
     changed = pyqtSignal()
+    #: Forwards the OS lid switch. Exists so the calibration wizard has a way to
+    #: hear "the lid just shut" without owning a second LidSwitch of its own;
+    #: Windows only reports one open/shut pair of callbacks per registration,
+    #: and this fans that single signal out to whichever Qt object wants it,
+    #: auto-queued onto the receiver's thread because pyqtSignal crossing
+    #: threads does that safely.
+    lid_state_changed = pyqtSignal(bool)
 
     #: How long the capture keeps running after the lid stops moving. Long
     #: enough to cover a close that pauses, short enough not to hold a capture
@@ -342,10 +349,13 @@ class Engine(QObject):
     # --- Events ----------------------------------------------------------
 
     def _on_lid_change(self, is_open: bool) -> None:
+        # Called from the lid switch thread. The controller only touches plain
+        # attributes here, and the timer re-reads them next tick. Emitting the
+        # signal is also thread safe; Qt queues it onto whatever thread each
+        # connected slot actually lives on.
         if not is_open:
-            # Called from the lid switch thread. The controller only touches
-            # plain attributes here, and the timer re-reads them next tick.
             self.controller.lid_shut()
+        self.lid_state_changed.emit(is_open)
 
     def _settings_changed(self) -> None:
         self.controller.retune(

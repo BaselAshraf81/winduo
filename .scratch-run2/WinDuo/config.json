@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "live_picture": true,
+  "trigger_travel": 14.73,
+  "full_effect_travel": 60.0,
+  "release_hysteresis": 4.0,
+  "max_blur_radius": 135.0,
+  "blur_evenness": 0.0,
+  "max_dim": 1.0,
+  "dim_reach": 0.5,
+  "viewing_distance": 6.0,
+  "recession": 0.96,
+  "neutral_settle_seconds": 0.4,
+  "neutral_settle_tolerance": 1.5,
+  "camera_index": 0,
+  "confidence_floor": 0.3515,
+  "render_width_cap": 1600,
+  "launch_at_login": false,
+  "show_reading": true,
+  "has_seen_camera_notice": true
+}

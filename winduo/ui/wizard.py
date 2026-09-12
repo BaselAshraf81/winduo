@@ -92,6 +92,10 @@ class CalibrationWizard(QWidget):
         self._confidence = 0.0
         self._pending: tuple[float, float] | None = None
         self._last_frame_at = 0.0
+        # Ground truth for the closing stage's end: Windows says the lid shut,
+        # rather than the wizard inferring it from the camera going dark. Only
+        # meaningful there, and _on_lid_shut checks the stage before acting.
+        engine.lid_state_changed.connect(self._on_lid_shut)
 
         root = QVBoxLayout(self)
         root.setContentsMargins(22, 20, 22, 18)
@@ -165,8 +169,9 @@ class CalibrationWizard(QWidget):
         self._closing = _Panel(
             "Step 3 of 3",
             "Now close it the rest of the way",
-            "Slowly and steadily, all the way shut. WinDuo will notice when you "
-            "get there, so you can stop reading now.",
+            "Slowly and steadily, all the way shut. Windows tells WinDuo the "
+            "moment it closes, so just close it and wait a second; there is "
+            "nothing to click and nothing to see once the screen goes off.",
         )
         self._closing_progress = HoldMeter()
         self._closing.add(self._closing_progress)
@@ -340,6 +345,20 @@ class CalibrationWizard(QWidget):
                 f"Seen {self._session.shift:.0f} pixels of movement so far."
             )
             self._advance.setEnabled(self._session.shift >= self._session.MINIMUM_SPAN)
+
+    def _on_lid_shut(self, is_open: bool) -> None:
+        """The operating system reported the lid closed.
+
+        The camera cannot see this happen on most laptops: it is pointed at the
+        user, not the keyboard well, so it stays lit and steady right up to the
+        moment the lid meets the base and the display cuts out. There is
+        nothing for the tracker to notice, which is exactly why the sweep needs
+        a signal that does not come from the tracker.
+        """
+        if is_open or self._session.stage is not Stage.CLOSING:
+            return
+        self._session.lid_closed()
+        self._show_outcome()
 
     def _report_camera_silence(self) -> None:
         """The camera has gone quiet. Say so instead of blaming the lighting."""
