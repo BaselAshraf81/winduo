@@ -45,7 +45,15 @@ class Settings:
     #: Degrees of closing away from neutral that start the effect.
     trigger_travel: float = 8.0
     #: Further degrees of closing to reach full strength.
-    full_effect_travel: float = 30.0
+    #:
+    #: 60 matches the reference implementation's ramp rate, and it is worth not
+    #: shortening. Dimming deliberately leads blur, so compressing the ramp hits
+    #: the dimming hardest and the picture reaches black before the blur has
+    #: developed enough to see. Windows does cut the display partway through a
+    #: close, which is an argument for a shorter ramp, but the answer to that is
+    #: to let the effect be unfinished rather than to rush it: macOS sleeps
+    #: partway through too.
+    full_effect_travel: float = 60.0
     #: Degrees of reopening past the trigger before the effect is released.
     #: Stops the effect flickering when the lid hovers on the threshold.
     release_hysteresis: float = 4.0

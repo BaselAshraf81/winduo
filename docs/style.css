@@ -292,7 +292,9 @@ code {
 .screen {
   --travel: 0;            /* degrees closed, set by CSS animation or JS */
   --lean: calc(var(--travel) * 1deg);
-  --progress: clamp(0, calc((var(--travel) - 8) / 30), 1);
+  /* Trigger at 8 degrees, full strength 60 degrees later, matching the app's
+   * own defaults so the page is not advertising a ramp nobody gets. */
+  --progress: clamp(0, calc((var(--travel) - 8) / 60), 1);
 
   position: relative;
   aspect-ratio: 16 / 10;
@@ -499,7 +501,7 @@ code {
 
 @keyframes close {
   from { --travel: 0; }
-  to   { --travel: 42; }
+  to   { --travel: 60; }
 }
 
 @property --travel {
@@ -511,11 +513,11 @@ code {
 /* No scroll timelines: show it part-closed, so a still image still makes the
  * point. JavaScript, when present, takes over from here. */
 @supports not (animation-timeline: scroll()) {
-  .screen { --travel: 26; }
+  .screen { --travel: 38; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .screen { --travel: 26; transition: none; }
+  .screen { --travel: 38; transition: none; }
   .dial__note { display: none; }
 }
 

@@ -59,9 +59,9 @@
   });
 
   if (quiet.matches) {
-    input.value = "26";
+    input.value = "38";
     take();
-    apply(26);
+    apply(38);
     return;
   }
 

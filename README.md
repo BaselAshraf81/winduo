@@ -38,10 +38,10 @@ You can skip calibration. WinDuo falls back to the scale of a typical 75° field
 
 ## Install
 
-Prebuilt releases are on the [releases page](https://github.com/winduo/winduo/releases). From source:
+Prebuilt releases are on the [releases page](https://github.com/BaselAshraf81/winduo/releases). From source:
 
 ```sh
-git clone https://github.com/winduo/winduo
+git clone https://github.com/BaselAshraf81/winduo
 cd winduo
 pip install -e .
 python -m winduo

@@ -86,6 +86,8 @@ def render(
     steps: int,
     viewing_distance: float | None = None,
     recession: float | None = None,
+    span: float | None = None,
+    max_dim: float | None = None,
 ) -> list[Path]:
     from OpenGL import GL
     from PyQt6.QtGui import QOffscreenSurface, QOpenGLContext, QSurfaceFormat
@@ -118,6 +120,10 @@ def render(
         settings.viewing_distance = viewing_distance
     if recession is not None:
         settings.recession = recession
+    if span is not None:
+        settings.full_effect_travel = span
+    if max_dim is not None:
+        settings.max_dim = max_dim
     geometry = DepthGeometry()
     gradient = BlurGradient()
     screen_size = (float(width), float(height))
@@ -245,6 +251,13 @@ def main(argv: list[str] | None = None) -> int:
         help="eye distance in screen heights; 1 converges sharply, 6 barely at all",
     )
     parser.add_argument("--recession", type=float, default=None)
+    parser.add_argument(
+        "--span",
+        type=float,
+        default=None,
+        help="degrees of further closing to reach full strength",
+    )
+    parser.add_argument("--max-dim", type=float, default=None)
     options = parser.parse_args(argv)
 
     setup_logging(verbose=True)
@@ -255,6 +268,8 @@ def main(argv: list[str] | None = None) -> int:
         options.steps,
         options.viewing_distance,
         options.recession,
+        options.span,
+        options.max_dim,
     )
     print(f"wrote {len(written)} files to {options.out}")
     return 0
