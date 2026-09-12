@@ -157,17 +157,25 @@ class SettingsWindow(QWidget):
         layout.addLayout(calibrate_row)
 
         # --- Start
-        layout.addWidget(SectionLabel("Start"))
+        layout.addWidget(SectionLabel("How it follows the lid"))
+        layout.addWidget(
+            help_label(
+                "The effect follows the lid the whole way down. It fades in "
+                "once you have closed a little, then keeps growing as you keep "
+                "closing, and reverses if you open again."
+            )
+        )
+
         self._trigger = SliderRow(
-            "Start after", 2, 40, 8, suffix="\u00b0",
-            help_text="Degrees of closing before the effect appears.",
+            "Fades in after", 2, 40, 8, suffix="\u00b0",
+            help_text="How far you can close before anything happens.",
         )
         self._trigger.changed.connect(lambda v: self._apply(trigger_travel=v))
         layout.addWidget(self._trigger)
 
         self._span = SliderRow(
-            "Full effect after", 5, 70, 30, suffix="\u00b0",
-            help_text="Further degrees of closing to reach full strength.",
+            "Reaches full strength over", 5, 70, 60, suffix="\u00b0",
+            help_text="Degrees of further closing to go from just visible to full.",
         )
         self._span.changed.connect(lambda v: self._apply(full_effect_travel=v))
         layout.addWidget(self._span)

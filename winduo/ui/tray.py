@@ -45,6 +45,15 @@ class TrayController(QObject):
         self.icon.show()
         self._tooltip.start()
         self._refresh()
+
+        # First run: open the wizard rather than leaving a tray icon to be
+        # discovered. Nobody installs this to go looking for a menu, and the
+        # wizard's first panel is also where the camera indicator gets
+        # explained, so it is the right place to land.
+        if not self.store.calibration.captured_at:
+            QTimer.singleShot(600, self.open_wizard)
+            return
+
         if not self.store.settings.has_seen_camera_notice:
             self._announce_camera()
 
@@ -106,12 +115,23 @@ class TrayController(QObject):
         self._wizard.start()
 
     def _on_wizard_finished(self, saved: bool) -> None:
+        self.store.update(has_seen_camera_notice=True)
         if saved:
             self.icon.showMessage(
-                "WinDuo is calibrated",
-                "Close the lid and the screen will lean away.",
+                "WinDuo is ready",
+                "Close the lid and the screen will lean away. WinDuo lives in "
+                "the notification area; right-click it for settings.",
                 tray_icon(True),
-                4000,
+                6000,
+            )
+        else:
+            self.icon.showMessage(
+                "WinDuo is running uncalibrated",
+                "The effect will still work, using an estimated scale. Calibrate "
+                "from the notification area whenever you want it to match your "
+                "own lid.",
+                tray_icon(False),
+                6000,
             )
         if self._settings is not None:
             self._settings._load_from_store()

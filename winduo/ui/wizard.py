@@ -71,6 +71,10 @@ class CalibrationWizard(QWidget):
 
     finished = pyqtSignal(bool)
 
+    #: How long the camera may send nothing at all before the wizard says so.
+    #: Long enough to cover a slow camera opening, short enough to be useful.
+    CAMERA_SILENCE = 3.0
+
     def __init__(self, store, engine, parent=None) -> None:
         super().__init__(parent)
         self.store = store
@@ -86,6 +90,8 @@ class CalibrationWizard(QWidget):
             camera_name=engine.camera.status().name,
         )
         self._confidence = 0.0
+        self._pending: tuple[float, float] | None = None
+        self._last_frame_at = 0.0
 
         root = QVBoxLayout(self)
         root.setContentsMargins(22, 20, 22, 18)
@@ -198,6 +204,8 @@ class CalibrationWizard(QWidget):
         self._session.cancel()
         self._tracker.reset()
         self._confidence = 0.0
+        self._pending = None
+        self._last_frame_at = time.monotonic()
         self._stack.setCurrentWidget(self._intro)
         self._advance.setText("Start")
         self._advance.setEnabled(True)
@@ -289,15 +297,25 @@ class CalibrationWizard(QWidget):
         self._pending = (reading.shift if reading.usable else 0.0, reading.confidence)
 
     def _tick(self) -> None:
-        pending = getattr(self, "_pending", None)
+        pending = self._pending
         self._pending = None
         now = time.monotonic()
-        if pending is not None:
-            shift, confidence = pending
-            self._confidence = confidence
-            self._session.feed(shift, confidence, now)
-        else:
-            self._session.feed(0.0, self._confidence, now)
+
+        if pending is None:
+            # No new camera frame since the last tick, which is not the same
+            # thing as a frame with nothing in it. This timer runs at 30 Hz and
+            # so does the camera, so they drift in and out of step and roughly
+            # every other tick has nothing new. Feeding those to the sweep as
+            # unmeasurable frames is what made calibration fail within half a
+            # second in a perfectly well lit room.
+            if now - self._last_frame_at > self.CAMERA_SILENCE:
+                self._report_camera_silence()
+            return
+
+        shift, confidence = pending
+        self._confidence = confidence
+        self._last_frame_at = now
+        self._session.feed(shift, confidence, now)
 
         stage = self._session.stage
         if stage in (Stage.DONE, Stage.FAILED):
@@ -322,6 +340,16 @@ class CalibrationWizard(QWidget):
                 f"Seen {self._session.shift:.0f} pixels of movement so far."
             )
             self._advance.setEnabled(self._session.shift >= self._session.MINIMUM_SPAN)
+
+    def _report_camera_silence(self) -> None:
+        """The camera has gone quiet. Say so instead of blaming the lighting."""
+        problem = self.engine.camera.status().problem
+        message = problem or (
+            "Waiting for the camera. Another app may be using it, such as a "
+            "video call."
+        )
+        for hint in (self._viewing_hint, self._halfway_hint, self._closing_hint):
+            hint.setText(message)
 
     def _hold_text(self, steady: bool) -> str:
         if self._confidence <= 0.05:

@@ -161,13 +161,18 @@ class TestSession:
         now = self.drive(session, [8.0] * 20)
         session.confirm_halfway()
         now = self.drive(session, [8.0] * 20, now=now)
-        self.drive(session, [0.0] * 20, now=now, confidence=0.0)
+        self.drive(
+            session,
+            [0.0] * (CalibrationSession.DARK_LIMIT + 4),
+            now=now,
+            confidence=0.0,
+        )
         assert session.stage is Stage.DONE
 
     def test_going_dark_before_closing_is_a_failure(self):
         session = CalibrationSession(track_width=320)
         session.begin()
-        self.drive(session, [0.0] * 20, confidence=0.0)
+        self.drive(session, [0.0] * (CalibrationSession.DARK_LIMIT + 4), confidence=0.0)
         assert session.stage is Stage.FAILED
         assert "covering it" in session.progress().message
 

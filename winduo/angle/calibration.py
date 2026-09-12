@@ -147,6 +147,11 @@ class CalibrationSession:
     #: Below this much total travel, the user did not really close the lid.
     MINIMUM_SPAN = 12.0
 
+    #: Consecutive unmeasurable readings before the sweep gives up. At camera
+    #: rate this is roughly a second and a half. Anything much shorter trips on
+    #: a single blink of autoexposure.
+    DARK_LIMIT = 45
+
     def __init__(self, track_width: int, camera_name: str = "") -> None:
         self.track_width = track_width
         self.camera_name = camera_name
@@ -222,7 +227,7 @@ class CalibrationSession:
         # A run of unmeasurable frames during the closing stage is the lid
         # arriving at the keyboard, which is the end of the sweep rather than a
         # failure. Camera trouble at any other stage is a failure.
-        if self._dark_frames > 12:
+        if self._dark_frames > self.DARK_LIMIT:
             if self.stage is Stage.CLOSING and self.shift >= self.MINIMUM_SPAN:
                 return self.finish()
             if self.stage is not Stage.CLOSING:

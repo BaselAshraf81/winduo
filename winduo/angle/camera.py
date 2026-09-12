@@ -18,6 +18,7 @@ from dataclasses import dataclass
 import cv2
 
 from winduo.angle.estimator import AngleSample, TravelEstimator
+from winduo.angle.tracker import prepare
 from winduo.config import Calibration, Settings
 from winduo.log import get_logger
 
@@ -52,12 +53,20 @@ CAPTURE_WIDTH = 640
 CAPTURE_HEIGHT = 480
 
 #: DirectShow reports exposure on a log2-seconds scale, so -6 is about 1/64 s
-#: and -8 about 1/256 s. Short enough to survive a fast close, long enough that
-#: an ordinary room is not pitch black.
-MANUAL_EXPOSURE = -7.0
+#: and -3 about 1/8 s. Tried shortest first.
+_EXPOSURE_LADDER = (-6.0, -5.0, -4.0, -3.0, -2.0)
+
 #: DirectShow's magic values for the auto exposure property.
 _DSHOW_MANUAL_EXPOSURE = 0.25
 _DSHOW_AUTO_EXPOSURE = 0.75
+
+#: Standard deviation of the downscaled grey frame below which there is nothing
+#: for phase correlation to lock onto. The tracker uses the same figure.
+_MIN_CONTRAST = 8.0
+
+#: A manual exposure has to retain this fraction of the contrast auto exposure
+#: manages, or it is not worth the darkness.
+_CONTRAST_RATIO = 0.6
 
 
 def list_cameras(limit: int = 6) -> list[int]:
@@ -270,7 +279,7 @@ class CameraAngleSource:
             # One frame of buffer, so a read returns what the camera sees now
             # rather than what it saw three frames ago.
             capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-            self._force_short_exposure(capture, backend)
+            self._tune_exposure(capture, backend)
             ok, _ = capture.read()
             if ok:
                 log.info("camera %d opened via %s", self._camera_index, label)
@@ -278,16 +287,73 @@ class CameraAngleSource:
             capture.release()
         return None
 
-    def _force_short_exposure(self, capture, backend) -> None:
+    def _tune_exposure(self, capture, backend) -> None:
+        """Pick the shortest exposure this camera and room can actually support.
+
+        Short exposure is worth having, because six degrees of lid travel inside
+        one frame smears the image badly enough to destroy the features the
+        correlator needs. But it cannot be assumed: asking one particular laptop
+        camera for 1/128 s returned frames that were uniformly zero, with no
+        error and no warning. Every reading was then correctly reported as
+        unmeasurable, and calibration failed telling the user their camera was
+        covered when the room was perfectly well lit.
+
+        So it is measured rather than declared. Auto exposure sets the reference,
+        then the ladder is walked shortest first, and the first setting that
+        keeps most of that contrast wins. If none do, auto exposure stays, which
+        smears during fast movement; the tracker's own confidence score already
+        notices when that happens and the effect declines to run.
+        """
         try:
-            if backend == cv2.CAP_DSHOW:
-                capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, _DSHOW_MANUAL_EXPOSURE)
-            else:
-                capture.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)
-            capture.set(cv2.CAP_PROP_EXPOSURE, MANUAL_EXPOSURE)
-            capture.set(cv2.CAP_PROP_GAIN, 255)
+            reference = self._contrast_at(capture, backend, None)
+            if reference is None:
+                log.info("camera would not report a usable frame while tuning")
+                return
+
+            wanted = max(_MIN_CONTRAST, reference * _CONTRAST_RATIO)
+            for exposure in _EXPOSURE_LADDER:
+                measured = self._contrast_at(capture, backend, exposure)
+                if measured is not None and measured >= wanted:
+                    log.info(
+                        "exposure %.0f chosen: contrast %.1f against %.1f on auto",
+                        exposure,
+                        measured,
+                        reference,
+                    )
+                    return
+
+            self._contrast_at(capture, backend, None)
+            log.info(
+                "keeping auto exposure: no manual setting held contrast "
+                "(auto measures %.1f)",
+                reference,
+            )
         except cv2.error:
-            # Plenty of cameras simply refuse. Auto exposure still works, it
-            # just smears during fast movement, and the tracker's confidence
-            # score already notices when that happens.
-            log.info("camera would not accept a manual exposure")
+            log.info("camera would not accept an exposure change", exc_info=True)
+
+    def _contrast_at(self, capture, backend, exposure: float | None) -> float | None:
+        """Apply an exposure and report the contrast it produces, or ``None``."""
+        if exposure is None:
+            capture.set(
+                cv2.CAP_PROP_AUTO_EXPOSURE,
+                _DSHOW_AUTO_EXPOSURE if backend == cv2.CAP_DSHOW else 1,
+            )
+        else:
+            capture.set(
+                cv2.CAP_PROP_AUTO_EXPOSURE,
+                _DSHOW_MANUAL_EXPOSURE if backend == cv2.CAP_DSHOW else 0,
+            )
+            capture.set(cv2.CAP_PROP_EXPOSURE, exposure)
+            capture.set(cv2.CAP_PROP_GAIN, 255)
+
+        # Cameras apply exposure over the next several frames, so the first ones
+        # back still describe the old setting.
+        time.sleep(0.25)
+        frame = None
+        for _ in range(6):
+            ok, candidate = capture.read()
+            if ok and candidate is not None:
+                frame = candidate
+        if frame is None:
+            return None
+        return float(prepare(frame).std())
