@@ -193,7 +193,9 @@ class SightlineDial(QWidget):
     def __init__(self, angle: float = 100.0, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._angle = angle
-        self.setMinimumHeight(168)
+        # Tall enough that the degree graticule outside the lid arc still fits.
+        # Sized from the arc rather than guessed: see _lid_length.
+        self.setMinimumHeight(214)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setCursor(Qt.CursorShape.SizeVerCursor)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -253,24 +255,44 @@ class SightlineDial(QWidget):
 
     # --- Painting --------------------------------------------------------
 
+    #: Room kept below the pivot for the reading, and above the arc for the
+    #: graticule that sits outside it.
+    _FOOT = 34.0
+    _CROWN = 24.0
+
     def _pivot(self) -> QPointF:
-        return QPointF(self.width() * 0.5, self.height() - 34.0)
+        return QPointF(self.width() * 0.5, self.height() - self._FOOT)
+
+    def _lid_length(self) -> float:
+        """Arc radius that keeps the graticule inside the widget.
+
+        The graticule is drawn beyond the lid, so the arc has to leave room for
+        it. Deriving the radius from the available height rather than picking a
+        constant is what stops the ticks being clipped at the top.
+        """
+        available = self.height() - self._FOOT - self._CROWN
+        return max(48.0, min(self.width() * 0.28, available))
 
     def paintEvent(self, _event) -> None:  # noqa: N802
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
         pivot = self._pivot()
-        base_length = min(self.width() * 0.30, 96.0)
-        lid_length = base_length * 1.06
+        lid_length = self._lid_length()
+        base_length = lid_length * 0.94
 
-        # Degree graticule, struck in Prussian blue because it is measured
-        # rather than chosen. Every 15 degrees, longer at the right angle.
+        # Degree graticule, struck in Prussian blue because it is measured rather
+        # than chosen. Every 15 degrees, longer at each 45.
         for degrees in range(int(self.MINIMUM), int(self.MAXIMUM) + 1, 15):
             radians = math.radians(degrees)
-            inner = lid_length + 9
-            outer = inner + (10 if degrees % 45 == 0 else 5)
+            inner = lid_length + 8
+            outer = inner + (11 if degrees % 45 == 0 else 6)
             painter.setPen(
-                QPen(QColor(Palette.PRUSSIAN if degrees % 45 == 0 else Palette.FRAME), 1)
+                QPen(
+                    QColor(Palette.PRUSSIAN)
+                    if degrees % 45 == 0
+                    else QColor(Palette.PRUSSIAN).darker(135),
+                    1,
+                )
             )
             painter.drawLine(
                 QPointF(
