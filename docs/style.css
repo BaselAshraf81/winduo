@@ -270,22 +270,19 @@ code {
 .snap--head { display: none; }
 
 .flat__inner {
-  max-width: 70rem;
+  max-width: 78rem;
   margin: 0 auto;
   padding: clamp(3rem, 8vh, 6rem) var(--gap) clamp(3.5rem, 9vh, 6.5rem);
   display: grid;
-  gap: clamp(2.5rem, 6vw, 4rem);
+  gap: clamp(2.5rem, 6vw, 5rem);
   grid-template-columns: 1fr;
-  align-items: start;
-}
-
-.flat__say {
-  max-width: 44rem;
+  align-items: center;
 }
 
 @media (min-width: 62rem) {
   .flat__inner {
-    min-height: auto;
+    grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
+    min-height: 100svh;
   }
 }
 
@@ -463,15 +460,21 @@ code {
 
 /* --- The recording --------------------------------------------------- */
 
+/* The clip itself is landscape (16:9), but it sits beside a narrow column of
+   text in a hero that reads top-to-bottom, so the frame around it is cut
+   tall rather than wide: a portrait card with the true 16:9 picture floating
+   inside it, letterboxed rather than cropped. object-fit: contain keeps
+   every frame of the source intact; the frame's own height is what supplies
+   the longitudinal shape. */
 .reel {
   width: 100%;
-  max-width: 64rem;
+  max-width: 22rem;
   margin: 0 auto;
 }
 
 .reel__frame {
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--blue-deep);
   border: 1px solid var(--blue-line);
