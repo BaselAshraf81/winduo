@@ -29,17 +29,19 @@ class _FakeSignal:
         return None
 
 
+class _FakeCamera:
+    @staticmethod
+    def latest(max_age: float = 1.0):
+        return None
+
+
 class _FakeEngine:
     """Only what TrayController touches, so no camera or GL is involved."""
 
     changed = _FakeSignal()
     problem = ""
     is_effect_running = False
-
-    class camera:
-        @staticmethod
-        def latest(max_age: float = 1.0):
-            return None
+    camera = _FakeCamera()
 
     @staticmethod
     def run_preview():
