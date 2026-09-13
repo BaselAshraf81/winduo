@@ -86,6 +86,9 @@ class FrameParams:
         "dim_reach",
         "max_blur_radius",
         "max_dim",
+        "hinge_glow",
+        "reflection_intensity",
+        "turn_strength",
     )
 
     def __init__(
@@ -98,15 +101,21 @@ class FrameParams:
         dim_reach: float = 0.5,
         max_blur_radius: float = 135.0,
         max_dim: float = 1.0,
+        hinge_glow: float = 0.0,
+        reflection_intensity: float = 0.0,
+        turn_strength: float = 0.0,
     ) -> None:
         self.corners = corners
         self.blur_strength = blur_strength
         self.dim_strength = dim_strength
+        self.turn_strength = turn_strength
         self.blur_floor = blur_floor
         self.dim_floor = dim_floor
         self.dim_reach = dim_reach
         self.max_blur_radius = max_blur_radius
         self.max_dim = max_dim
+        self.hinge_glow = hinge_glow
+        self.reflection_intensity = reflection_intensity
 
 
 class _DepthView(QOpenGLWidget):
@@ -269,6 +278,9 @@ class _DepthView(QOpenGLWidget):
         GL.glUniform1f(u["uDimStrength"], params.dim_strength)
         GL.glUniform1f(u["uDimFloor"], params.dim_floor)
         GL.glUniform1f(u["uDimReach"], params.dim_reach)
+        GL.glUniform1f(u["uHingeGlow"], params.hinge_glow)
+        GL.glUniform1f(u["uReflectionIntensity"], params.reflection_intensity)
+        GL.glUniform1f(u["uTurn"], params.turn_strength)
 
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)
         GL.glBindVertexArray(0)
@@ -560,6 +572,9 @@ _UNIFORM_NAMES = (
     "uDimStrength",
     "uDimFloor",
     "uDimReach",
+    "uHingeGlow",
+    "uReflectionIntensity",
+    "uTurn",
 )
 
 

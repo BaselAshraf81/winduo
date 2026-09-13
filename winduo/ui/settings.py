@@ -210,6 +210,22 @@ class SettingsWindow(QWidget):
         self._dim_reach.changed.connect(lambda v: self._apply(dim_reach=v))
         layout.addWidget(self._dim_reach)
 
+        self._hinge_glow = SliderRow(
+            "Hinge glow", 0, 1, 0.5, suffix="%", display_scale=100,
+            help_text="A narrow highlight along the hinge, as it catches light while turning.",
+        )
+        self._hinge_glow.changed.connect(lambda v: self._apply(hinge_glow=v))
+        layout.addWidget(self._hinge_glow)
+
+        self._reflection = SliderRow(
+            "Reflection", 0, 1, 0.5, suffix="%", display_scale=100,
+            help_text="A soft pale band partway up the picture, standing in for the glass.",
+        )
+        self._reflection.changed.connect(
+            lambda v: self._apply(reflection_intensity=v)
+        )
+        layout.addWidget(self._reflection)
+
         # --- Perspective
         layout.addWidget(SectionLabel("Perspective"))
         self._recession = SliderRow(
@@ -338,6 +354,8 @@ class SettingsWindow(QWidget):
             self._blur_spread.set_value(settings.blur_evenness)
             self._dim.set_value(settings.max_dim)
             self._dim_reach.set_value(settings.dim_reach)
+            self._hinge_glow.set_value(settings.hinge_glow)
+            self._reflection.set_value(settings.reflection_intensity)
             self._recession.set_value(settings.recession)
             self._perspective.set_value(
                 perspective_from_distance(settings.viewing_distance)

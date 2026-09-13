@@ -31,6 +31,20 @@ each carries a note saying so in its source file:
 The angle estimation in winduo/angle/ is not derived from Mac Duo. Mac Duo reads
 a hardware lid angle sensor over HID; that code has no counterpart here.
 
+Three details in winduo/effect/gradient.py and winduo/render/shaders.py are
+adapted from ideas in macTilt:
+
+    macTilt
+    https://github.com/lqSky7/iphone-duo-macos-animation
+    Copyright 2026 lqSky7
+    Licensed under the MIT License
+
+No code is copied. The constants and shader lines are written for WinDuo's own
+receding-plane geometry rather than macTilt's folding one, so what carries over
+is the idea behind three effects: extra blur while the lid is moving quickly, a
+narrow specular line at the hinge, and a soft reflection band partway up the
+picture. Each is noted at its own definition.
+
 Mac Duo's original Apache License, Version 2.0 permits relicensing derivative
 works under different terms (Section 4), provided the original copyright,
 attribution, and NOTICE requirements are preserved, which is what this file

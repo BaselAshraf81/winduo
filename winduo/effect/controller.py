@@ -82,6 +82,12 @@ class Frame:
     current_angle: float
     #: 0 to 1, driving blur and dimming.
     progress: float
+    #: Degrees per second the lid is closing at, straight from the latest
+    #: sample rather than eased. Feeds :meth:`BlurGradient.motion_boost`; the
+    #: eased travel already smooths the picture's position, so the speed used
+    #: for the extra blur should reflect the real motion rather than a second
+    #: derivative of something already smoothed once.
+    velocity: float = 0.0
     #: True on the frame that finishes the ease back to flat.
     is_final: bool = False
 
@@ -272,6 +278,7 @@ class EffectController:
             start_angle=self._neutral_angle - settings.trigger_travel,
             current_angle=self._neutral_angle - held_travel,
             progress=progress,
+            velocity=self._velocity,
             is_final=is_final,
         )
 

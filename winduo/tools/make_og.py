@@ -152,6 +152,25 @@ def compose(out: Path, lettering: bool = True, size: tuple[int, int] | None = No
     spread = spread * spread * (3 - 2 * spread)  # smoothstep
     fade = dim_strength * (gradient.dim_hinge_floor + (1 - gradient.dim_hinge_floor) * spread)
     lit = picked * np.power(1 - settings.max_dim * fade, 2.2)[..., None]
+
+    # The hinge highlight and the reflection band, matching the shader. Additive
+    # after the dimming, gated on the turn rather than on the dim curve, and in
+    # 0-255 space here rather than the shader's linear 0-1, so the amplitudes
+    # carry the same factor of 255. No margin mask is needed: this operates in
+    # panel space, where every row is on the picture by construction, and the
+    # perspective warp below fills outside the panel with black separately.
+    turn = gradient.turn_strength(progress)
+    hinge_line = np.exp(-((rows / 0.05) ** 2)) * turn
+    lit = lit + (
+        np.array([0.97, 0.95, 0.92], dtype=np.float32)
+        * (hinge_line * settings.hinge_glow * 0.006 * 255.0)[..., None]
+    )
+    reflection = np.exp(-(((rows - 0.65) / 0.28) ** 2)) * turn
+    lit = lit + (
+        np.array([0.90, 0.88, 0.85], dtype=np.float32)
+        * (reflection * settings.reflection_intensity * 0.004 * 255.0)[..., None]
+    )
+
     panel = np.clip(lit, 0, 255).astype(np.uint8)
 
     corners = geometry.corners(

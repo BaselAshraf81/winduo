@@ -75,6 +75,16 @@ class Settings:
     #: Height at which the dimming reaches full strength, as a fraction of the
     #: screen height.
     dim_reach: float = 0.5
+    #: Strength of a narrow specular line at the hinge edge, 0 to 1. The idea is
+    #: adapted from macTilt's hinge highlight (github.com/lqSky7/
+    #: iphone-duo-macos-animation, MIT): a real hinge catches a little light
+    #: along its crease as the screen turns away from it, and a flat gradient
+    #: alone never produces that. 0 turns it off.
+    hinge_glow: float = 0.5
+    #: Strength of a soft pale band partway up the picture, 0 to 1. Adapted the
+    #: same way as ``hinge_glow``, standing in for a hinted reflection off the
+    #: turning glass rather than a literal one. 0 turns it off.
+    reflection_intensity: float = 0.5
 
     # --- Perspective -----------------------------------------------------
     #: Eye distance from the middle of the screen, in screen heights.
@@ -115,6 +125,8 @@ class Settings:
         out.blur_evenness = _clamp(out.blur_evenness, 0.0, 1.0)
         out.max_dim = _clamp(out.max_dim, 0.0, 1.0)
         out.dim_reach = _clamp(out.dim_reach, 0.2, 1.0)
+        out.hinge_glow = _clamp(out.hinge_glow, 0.0, 1.0)
+        out.reflection_intensity = _clamp(out.reflection_intensity, 0.0, 1.0)
         out.viewing_distance = _clamp(out.viewing_distance, 1.0, 6.0)
         out.recession = _clamp(out.recession, 0.0, 3.0)
         out.neutral_settle_seconds = _clamp(out.neutral_settle_seconds, 0.15, 3.0)

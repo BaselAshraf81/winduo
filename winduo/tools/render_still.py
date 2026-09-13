@@ -213,6 +213,12 @@ def render(
         GL.glUniform1f(uniforms["uDimStrength"], gradient.dim_strength(progress))
         GL.glUniform1f(uniforms["uDimFloor"], gradient.dim_hinge_floor)
         GL.glUniform1f(uniforms["uDimReach"], settings.dim_reach)
+        # These have to be set here too. An unset uniform reads zero, so leaving
+        # them out silently renders the pre-hinge-glow look, which makes this
+        # tool useless for the exact thing it exists for.
+        GL.glUniform1f(uniforms["uHingeGlow"], settings.hinge_glow)
+        GL.glUniform1f(uniforms["uReflectionIntensity"], settings.reflection_intensity)
+        GL.glUniform1f(uniforms["uTurn"], gradient.turn_strength(progress))
 
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)
 

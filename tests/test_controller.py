@@ -250,6 +250,15 @@ class TestFrames:
         assert harness.frame is not None
         assert harness.frame.progress == pytest.approx(1.0, abs=0.02)
 
+    def test_the_frame_carries_the_sample_velocity(self):
+        # The one line that makes the velocity-aware blur work at all. Without
+        # it the boost reads a constant zero and the feature is inert.
+        harness = Harness(trigger_travel=8.0)
+        harness.close(to=8.0)
+        harness.run(20.0, velocity=140.0)
+        assert harness.frame is not None
+        assert harness.frame.velocity == pytest.approx(140.0)
+
     def test_progress_is_zero_at_the_trigger(self):
         harness = Harness(trigger_travel=8.0, full_effect_travel=30.0)
         harness.run(8.0, velocity=60.0)

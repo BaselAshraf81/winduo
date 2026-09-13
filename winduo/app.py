@@ -239,15 +239,31 @@ class Engine(QObject):
     def _draw(self, frame) -> None:
         settings = self.store.settings
         gradient = self.controller.gradient
+        # Added, not multiplied: a slam partway through the ramp should look
+        # like it moved fast at that point in the ramp, not like the whole
+        # curve got steeper. Clamped to 1 for the same reason the travel-driven
+        # term already is, since the shader's mip selection assumes strength
+        # never exceeds full.
+        #
+        # Scaled by progress as well, which is what keeps the ease-back honest.
+        # Velocity is large while the lid is being opened quickly, and progress
+        # is collapsing toward zero at the same time, so an unscaled boost would
+        # make the last frame before the overlay fades out the blurriest one in
+        # the whole run, on a picture that is otherwise already back to flat.
+        boost = gradient.motion_boost(frame.velocity) * frame.progress
+        blur_strength = min(gradient.blur_strength(frame.progress) + boost, 1.0)
         params = FrameParams(
             corners=self.controller.corners(frame, self._screen_size),
-            blur_strength=gradient.blur_strength(frame.progress),
+            blur_strength=blur_strength,
             dim_strength=gradient.dim_strength(frame.progress),
+            turn_strength=gradient.turn_strength(frame.progress),
             blur_floor=settings.blur_evenness,
             dim_floor=gradient.dim_hinge_floor,
             dim_reach=settings.dim_reach,
             max_blur_radius=settings.max_blur_radius,
             max_dim=settings.max_dim,
+            hinge_glow=settings.hinge_glow,
+            reflection_intensity=settings.reflection_intensity,
         )
         # A held picture takes the first frame and nothing after it, which is what
         # "live rendering off" means.
