@@ -477,7 +477,8 @@ code {
    every other drawn mark on this page is: flat shapes, no gradients standing
    in for metal or glass. */
 .reel {
-  max-width: 19rem;
+  width: 100%;
+  max-width: 27rem;
   margin-inline: auto;
 }
 
