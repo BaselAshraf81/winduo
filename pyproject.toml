@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "winduo"
-version = "0.1.0"
+version = "0.1.1"
 description = "Lean the screen away as the laptop lid closes, using the webcam instead of a hinge sensor"
 readme = "README.md"
 requires-python = ">=3.11"
