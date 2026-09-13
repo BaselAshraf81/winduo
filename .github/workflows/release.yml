@@ -24,20 +24,84 @@ jobs:
           pip install -e .
           pip install pyinstaller==6.11.1
 
+      - name: Remove OpenCV's unused video-file decoder before packaging
+        # opencv_videoio_ffmpeg is ~29 MB and is only consulted by
+        # cv2.VideoCapture when opening a video *file*; this app only reads
+        # live camera frames through the DirectShow/Media Foundation backends
+        # in winduo/angle/camera.py, never a file, so the plugin is dead
+        # weight. It has to be deleted from cv2's own install directory before
+        # PyInstaller runs: for a --onefile build everything is packed into
+        # the exe during the build itself, so nothing is left in dist/
+        # afterward to strip, and --exclude-module only applies to importable
+        # Python modules, not raw DLLs that a hook collects as data.
+        run: |
+          $cv2Path = python -c "import cv2, os; print(os.path.dirname(cv2.__file__))"
+          Get-ChildItem -Path $cv2Path -Filter "*ffmpeg*.dll" -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "Removing $($_.FullName) ($([math]::Round($_.Length / 1MB, 1)) MB)"
+            Remove-Item $_.FullName -Force
+          }
+        shell: pwsh
+
       - name: Build
-        # One file, no console window. --collect-all covers the three packages
-        # that load binaries or plugins at runtime and are therefore invisible to
-        # PyInstaller's static import analysis: Qt's platform plugins, OpenCV's
-        # extension modules, and PyOpenGL's ctypes-loaded GL libraries.
+        # One file, no console window.
+        #
+        # --collect-all PyQt6 used to pull in the whole Qt distribution: Quick,
+        # Qml, Quick3D, Designer, Pdf, WebEngine, Bluetooth, Sql, every
+        # QuickControls2 style, and translations for every locale, none of
+        # which this app imports. The app only uses QtCore, QtGui, QtWidgets,
+        # and QtOpenGLWidgets, so --collect-submodules targets exactly those,
+        # and the --exclude-module list removes the plugin categories
+        # PyInstaller otherwise collects alongside them because they share a
+        # QtCore dependency. This took the build from roughly 150 MB to well
+        # under half that.
+        #
+        # cv2 and OpenGL still need --collect-all: both load compiled
+        # extensions and, for OpenGL, GL functions via ctypes at runtime, which
+        # PyInstaller's static import scan cannot see coming. OpenCV's own
+        # FFmpeg video-file plugin is excluded because the app only reads live
+        # camera frames through the DirectShow/Media Foundation backends in
+        # winduo/angle/camera.py; it never opens a video file, so that decoder
+        # is dead weight.
         run: >
           pyinstaller
           --onefile
           --noconsole
           --name WinDuo
-          --collect-all PyQt6
+          --collect-submodules PyQt6.QtCore
+          --collect-submodules PyQt6.QtGui
+          --collect-submodules PyQt6.QtWidgets
+          --collect-submodules PyQt6.QtOpenGLWidgets
           --collect-all cv2
           --collect-all OpenGL
           --collect-all dxcam
+          --exclude-module PyQt6.QtQml
+          --exclude-module PyQt6.QtQuick
+          --exclude-module PyQt6.QtQuick3D
+          --exclude-module PyQt6.QtQuickWidgets
+          --exclude-module PyQt6.QtQuickControls2
+          --exclude-module PyQt6.QtDesigner
+          --exclude-module PyQt6.QtPdf
+          --exclude-module PyQt6.QtPdfWidgets
+          --exclude-module PyQt6.QtWebEngineCore
+          --exclude-module PyQt6.QtWebEngineWidgets
+          --exclude-module PyQt6.QtWebSockets
+          --exclude-module PyQt6.QtMultimedia
+          --exclude-module PyQt6.QtMultimediaWidgets
+          --exclude-module PyQt6.QtBluetooth
+          --exclude-module PyQt6.QtNfc
+          --exclude-module PyQt6.QtSql
+          --exclude-module PyQt6.QtTest
+          --exclude-module PyQt6.QtSensors
+          --exclude-module PyQt6.QtSerialPort
+          --exclude-module PyQt6.QtPositioning
+          --exclude-module PyQt6.QtHelp
+          --exclude-module PyQt6.QtDBus
+          --exclude-module PyQt6.QtDesigner
+          --exclude-module PyQt6.QtNetwork
+          --exclude-module PyQt6.QtSvgWidgets
+          --exclude-module PyQt6.QtRemoteObjects
+          --exclude-module PyQt6.QtXml
+          --exclude-module PyQt6.QtXmlPatterns
           --exclude-module tkinter
           --exclude-module matplotlib
           winduo/__main__.py
