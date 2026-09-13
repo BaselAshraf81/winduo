@@ -30,6 +30,10 @@ class TrayController(QObject):
         self._settings: SettingsWindow | None = None
         self._wizard: CalibrationWizard | None = None
         self._was_active = False
+        #: True between the first-run wizard opening and it closing, so the
+        #: settings window is shown once on a fresh install and not again every
+        #: time somebody recalibrates.
+        self._first_run = False
 
         self.icon = QSystemTrayIcon(tray_icon(False))
         self.icon.setToolTip("WinDuo")
@@ -51,6 +55,7 @@ class TrayController(QObject):
         # wizard's first panel is also where the camera indicator gets
         # explained, so it is the right place to land.
         if not self.store.calibration.captured_at:
+            self._first_run = True
             QTimer.singleShot(600, self.open_wizard)
             return
 
@@ -135,6 +140,15 @@ class TrayController(QObject):
             )
         if self._settings is not None:
             self._settings._load_from_store()
+
+        # On a fresh install, show the settings window once the wizard is done.
+        # A tray icon and a balloon are both easy to miss, so without this the
+        # app looks like it has no controls at all: the effect just happens, and
+        # every slider in it stays undiscovered. Delayed slightly so it opens
+        # after the wizard has actually closed rather than behind it.
+        if self._first_run:
+            self._first_run = False
+            QTimer.singleShot(700, self.open_settings)
 
     def _announce_camera(self) -> None:
         self.store.update(has_seen_camera_notice=True)
