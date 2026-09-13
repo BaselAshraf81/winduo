@@ -4,6 +4,12 @@ Close your laptop lid and the screen leans away, blurring and dimming as it goes
 
 Apple has a hinge to read. [Mac Duo](https://github.com/sumimakito/Mac-Duo) has the MacBook's lid angle sensor. Your laptop has neither, so WinDuo watches the webcam instead.
 
+<p align="center">
+  <a href="https://winduo.baselashraf.com">
+    <img src="docs/demo.gif" alt="A laptop lid closing, the screen leaning back, blurring and dimming, recorded on a Windows laptop with no angle sensor." width="240">
+  </a>
+</p>
+
 **[winduo.baselashraf.com](https://winduo.baselashraf.com)** · Windows 10 (2004+) and 11 · Free for noncommercial use, [PolyForm Noncommercial 1.0.0](LICENSE)
 
 ## Install
