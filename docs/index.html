@@ -143,10 +143,36 @@
       </li>
       <li class="bar__divider" aria-hidden="true"></li>
       <li>
-        <a class="bar__link bar__link--dim" href="https://ko-fi.com/baselashraf" rel="noopener">Ko-fi</a>
-      </li>
-      <li>
-        <a class="bar__link bar__link--dim" href="https://paypal.me/baselashrafusd" rel="noopener">PayPal</a>
+        <!--
+          A dropdown rather than two bare links, so the type gets the same
+          weight and treatment as the rest of the bar instead of shrinking to
+          fit. Reuses the "grab" pattern from the hero's download menu: a
+          native details/summary, keyboard operable and scripting-free.
+        -->
+        <details class="drop">
+          <summary class="bar__link bar__link--dim">
+            Support
+            <svg class="icon drop__chevron" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 8 10.5l4-4"/></svg>
+          </summary>
+          <div class="drop__menu drop__menu--right">
+            <a class="drop__option" href="https://ko-fi.com/baselashraf" rel="noopener">
+              <span class="drop__name">Ko-fi</span>
+              <span class="drop__note">One-off or monthly, no account needed.</span>
+            </a>
+            <a class="drop__option" href="https://paypal.me/baselashrafusd" rel="noopener">
+              <span class="drop__name">PayPal</span>
+              <span class="drop__note">Any amount, one time.</span>
+            </a>
+            <a class="drop__option" href="https://liberapay.com/BaselAshraf81/donate" rel="noopener">
+              <span class="drop__name">Liberapay</span>
+              <span class="drop__note">Recurring, no fees.</span>
+            </a>
+            <a class="drop__option" href="https://airtm.me/theprofitking" rel="noopener">
+              <span class="drop__name">Airtm</span>
+              <span class="drop__note">Works from most countries.</span>
+            </a>
+          </div>
+        </details>
       </li>
     </ul>
   </div>

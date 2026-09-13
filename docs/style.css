@@ -158,6 +158,16 @@ code {
   gap: 1rem;
 }
 
+/* Only present on pages reached by navigating away from the main page (the
+   download destination). A back affordance sits leading, beside identity,
+   never among the trailing action list where the eye does not expect it. */
+.bar__link--back {
+  color: var(--chalk-soft);
+  padding-left: 0;
+}
+
+.bar__link--back:hover { color: var(--chalk); background: transparent; }
+
 .bar__name {
   font-size: 0.84rem;
   color: var(--chalk-faint);
@@ -350,36 +360,51 @@ code {
 
 .icon { width: 1em; height: 1em; flex: none; }
 
-/* --- Download options ------------------------------------------------- */
+/* --- Dropdown menu ------------------------------------------------------
+ * One system for every details/summary menu on the site: the hero's "Get
+ * WinDuo" choice and the nav bar's "Support" choice both use it. A native
+ * details element, so both work with scripting off and are keyboard operable
+ * for free. `.grab` is the hero's larger button-triggered variant; `.drop` is
+ * the compact nav-bar trigger. Both share the `__menu`/`__option` panel.
+ * -------------------------------------------------------------------- */
 
-.grab { position: relative; }
+.grab, .drop { position: relative; }
 
-.grab > summary {
+.grab > summary, .drop > summary {
   cursor: pointer;
   list-style: none;
 }
 
-.grab > summary::-webkit-details-marker { display: none; }
+.grab > summary::-webkit-details-marker,
+.drop > summary::-webkit-details-marker { display: none; }
 
-.grab__chevron {
+.grab__chevron, .drop__chevron {
   transition: transform 200ms var(--ease);
   opacity: 0.8;
 }
 
-.grab[open] > summary .grab__chevron { transform: rotate(180deg); }
+.grab[open] > summary .grab__chevron,
+.drop[open] > summary .drop__chevron { transform: rotate(180deg); }
 
-.grab__menu {
+/* The compact trigger is a bar__link already; it only needs the chevron. */
+.drop__chevron { width: 0.7em; height: 0.7em; margin-left: 0.1rem; }
+
+.drop__menu, .grab__menu {
   position: absolute;
   top: calc(100% + 0.5rem);
   left: 0;
   z-index: 10;
-  min-width: min(24rem, calc(100vw - 2 * var(--gap)));
+  min-width: min(22rem, calc(100vw - 2 * var(--gap)));
   background: var(--blue-deep);
   border: 1.5px solid var(--blue-line);
   box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.8);
 }
 
-.grab__option {
+/* The nav bar's menu opens near the right edge of the viewport, so it grows
+   leftward from the trigger instead of overflowing off screen. */
+.drop__menu--right { left: auto; right: 0; }
+
+.drop__option, .grab__option {
   display: block;
   padding: 0.9rem 1.1rem;
   text-decoration: none;
@@ -388,21 +413,23 @@ code {
   transition: background 180ms var(--ease);
 }
 
-.grab__option:last-child { border-bottom: 0; }
+.drop__option:last-child, .grab__option:last-child { border-bottom: 0; }
 
-.grab__option:hover,
-.grab__option:focus-visible {
+.drop__option:hover, .drop__option:focus-visible,
+.grab__option:hover, .grab__option:focus-visible {
   background: rgba(244, 240, 230, 0.06);
   color: var(--chalk);
 }
 
-.grab__name {
+.drop__name, .grab__name {
   display: block;
   font-family: var(--display);
-  font-size: 1.2rem;
   font-weight: 700;
   margin-bottom: 0.15rem;
 }
+
+.grab__name { font-size: 1.2rem; }
+.drop__name { font-size: 1.05rem; }
 
 /* The recommended route gets the working mark, so the choice is not a coin flip. */
 .grab__option:first-child .grab__name::after {
@@ -416,7 +443,7 @@ code {
   background: var(--oxide);
 }
 
-.grab__note {
+.drop__note, .grab__note {
   display: block;
   font-size: 0.86rem;
   line-height: 1.5;
@@ -935,36 +962,38 @@ code {
 
 .bay--close { padding-bottom: clamp(5rem, 12vh, 8rem); }
 
-/* --- Download / support page ------------------------------------------ */
+/* --- Download / support page --------------------------------------------
+ * Built from the same primitives as the main page: .bay, .snap, .steps'
+ * numbered rows, .support's flat link row. No cards, no rounded panels, no
+ * emoji as icon stand-ins; every symbol here is a drawn stroke SVG matching
+ * the ones already used for GitHub/download elsewhere on the site.
+ * -------------------------------------------------------------------- */
 
-.thanks {
-  min-height: calc(100svh - 46px);
-  display: flex;
-  align-items: center;
+.thanks-hero {
   background:
     radial-gradient(120% 90% at 18% 8%, var(--blue-lift) 0%, transparent 55%),
     linear-gradient(178deg, var(--blue) 0%, var(--blue-deep) 100%);
+  padding: clamp(3rem, 8vh, 5.5rem) var(--gap) clamp(2.5rem, 6vh, 4rem);
 }
 
-.thanks__inner {
-  max-width: 42rem;
+.thanks-hero__inner {
+  max-width: 40rem;
   margin: 0 auto;
-  padding: clamp(3rem, 8vh, 6rem) var(--gap);
 }
 
 .thanks__status {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: var(--chalk-soft);
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
 }
 
 .thanks__spin {
-  width: 1.25rem;
-  height: 1.25rem;
-  color: var(--prussian-bright, var(--chalk-faint));
+  width: 1.15rem;
+  height: 1.15rem;
+  color: var(--chalk-faint);
   flex: none;
   animation: spin 1.1s linear infinite;
 }
@@ -975,111 +1004,51 @@ code {
   .thanks__spin { animation: none; }
 }
 
-.thanks__heading {
+.thanks-hero h1 {
   font-family: var(--display);
-  font-size: clamp(2.4rem, 1.6rem + 3.5vw, 4.2rem);
+  font-size: clamp(2.3rem, 1.5rem + 3.2vw, 3.8rem);
   font-weight: 800;
-  line-height: 0.96;
+  line-height: 0.98;
   letter-spacing: -0.02em;
   color: var(--chalk);
-  margin: 0 0 1.4rem;
+  margin: 0 0 0.5em;
   text-wrap: balance;
 }
 
-.thanks__heading::after {
+.thanks-hero h1::after {
   content: "";
   display: block;
   height: 3px;
   width: 3.5rem;
-  margin-top: 0.7rem;
+  margin-top: 0.6em;
   background: var(--oxide);
 }
 
-.thanks__sub {
+.thanks-hero p {
   color: var(--chalk-soft);
-  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.1rem);
-  line-height: 1.6;
-  max-width: 38ch;
-  margin-bottom: 1rem;
+  font-size: clamp(1rem, 0.95rem + 0.2vw, 1.08rem);
+  max-width: 42ch;
 }
 
-.thanks__options {
-  display: grid;
-  gap: 0.6rem;
-  margin: 2rem 0 2rem;
+/* The support list, exactly the .support component already used in the main
+   page's footer, laid out as the page's primary content instead of a
+   secondary line. Same anatomy, more room to breathe. */
+.thanks-hero .support {
+  margin: 1.6rem 0 0;
+  max-width: none;
 }
 
-.thanks__card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.95rem 1.1rem;
-  background: var(--blue-lift);
-  border: 1px solid var(--blue-line);
-  text-decoration: none;
-  color: var(--chalk);
-  transition: background 180ms var(--ease), border-color 180ms var(--ease),
-              transform 180ms var(--ease);
+.thanks-hero .support a {
+  padding: 0.55rem 1rem;
+  font-size: 0.92rem;
 }
 
-.thanks__card:hover {
-  background: #1f3d57;
-  border-color: #3d6277;
-  transform: translateX(3px);
-  color: var(--chalk);
-}
-
-.thanks__card:focus-visible {
-  outline: 2px solid var(--oxide-lift);
-  outline-offset: 2px;
-}
-
-/* The lead card gets the oxide treatment. */
-.thanks__card--lead {
-  background: var(--oxide-sunk, #9c3d21);
+.thanks-hero .support a:first-child {
   border-color: var(--oxide);
+  color: var(--chalk);
 }
 
-.thanks__card--lead:hover {
-  background: var(--oxide);
-  border-color: var(--oxide-lift);
-}
-
-.thanks__card-icon {
-  font-size: 1.5rem;
-  line-height: 1;
-  flex: none;
-}
-
-.thanks__card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.thanks__card-body strong {
-  display: block;
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.thanks__card-body span {
-  font-size: 0.85rem;
-  color: var(--chalk-soft);
-}
-
-.thanks__card--lead .thanks__card-body span {
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.thanks__card-arrow {
-  width: 1rem;
-  height: 1rem;
-  color: var(--chalk-faint);
-  flex: none;
-  transition: transform 180ms var(--ease);
-}
-
-.thanks__card:hover .thanks__card-arrow { transform: translateX(3px); }
+.thanks-hero .support a:first-child:hover { background: rgba(210, 84, 44, 0.12); }
 
 .thanks__skip {
   font-size: 0.88rem;
