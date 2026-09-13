@@ -8,14 +8,18 @@ version = "0.1.0"
 description = "Lean the screen away as the laptop lid closes, using the webcam instead of a hinge sensor"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
+license = { text = "PolyForm-Noncommercial-1.0.0" }
 authors = [{ name = "Basel Ashraf", email = "hello@baselashraf.com" }]
 keywords = ["windows", "overlay", "opengl", "computer-vision", "laptop", "lid-angle"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Win32 (MS Windows)",
     "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: Apache Software License",
+    # PolyForm Noncommercial is not an OSI-approved open source license (it
+    # forbids commercial use), so no "License :: OSI Approved" classifier
+    # applies. "Other/Proprietary License" is PyPI's own suggested bucket for
+    # anything outside the OSI list.
+    "License :: Other/Proprietary License",
     "Operating System :: Microsoft :: Windows :: Windows 10",
     "Operating System :: Microsoft :: Windows :: Windows 11",
     "Programming Language :: Python :: 3.11",

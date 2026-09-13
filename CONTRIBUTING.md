@@ -1,5 +1,7 @@
 # Contributing
 
+WinDuo is licensed under [PolyForm Noncommercial 1.0.0](LICENSE): free for any noncommercial purpose, not licensed for commercial use. By submitting a pull request you agree your contribution is licensed under the same terms, and that the required attribution in [NOTICE](NOTICE) stays intact.
+
 ## Getting set up
 
 ```sh

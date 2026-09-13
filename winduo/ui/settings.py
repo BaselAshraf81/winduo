@@ -294,7 +294,7 @@ class SettingsWindow(QWidget):
             'Built by <a href="https://baselashraf.com" style="color:#6fa3c7;">'
             "Basel Ashraf</a>. Ported from "
             '<a href="https://github.com/sumimakito/Mac-Duo" '
-            'style="color:#6fa3c7;">Mac Duo</a> by Makito. Apache 2.0.'
+            'style="color:#6fa3c7;">Mac Duo</a> by Makito. Free for noncommercial use.'
         )
         credit.setOpenExternalLinks(True)
         credit.setWordWrap(True)

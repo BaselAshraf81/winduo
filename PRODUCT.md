@@ -114,9 +114,12 @@ Terminology:
 
 ## Brand Commitments
 
-Name: WinDuo. Licensed Apache 2.0, matching Mac Duo, whose geometry, shader structure, and state
-machine this project ports. Attribution to Makito and Mac Duo is required and permanent, in both
-NOTICE and the project site.
+Name: WinDuo. Licensed under the PolyForm Noncommercial License 1.0.0: free for any noncommercial
+purpose, commercial use requires a separate agreement. Ports geometry, shader structure, and state
+machine from Mac Duo (originally Apache 2.0); Section 4 of Apache 2.0 permits relicensing a
+derivative work under different terms provided the original attribution and NOTICE requirements
+are preserved, which NOTICE does. Attribution to Basel Ashraf and to Makito/Mac Duo is required and
+permanent, in LICENSE, NOTICE, and the project site.
 
 ## Evidence on Hand
 

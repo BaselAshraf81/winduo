@@ -4,7 +4,7 @@ Close your laptop lid and the screen leans away, blurring and dimming as it goes
 
 Apple has a hinge to read. [Mac Duo](https://github.com/sumimakito/Mac-Duo) has the MacBook's lid angle sensor. Your laptop has neither, so WinDuo watches the webcam instead.
 
-**[winduo.baselashraf.com](https://winduo.baselashraf.com)** · Windows 10 (2004+) and 11 · Apache 2.0
+**[winduo.baselashraf.com](https://winduo.baselashraf.com)** · Windows 10 (2004+) and 11 · Free for noncommercial use, [PolyForm Noncommercial 1.0.0](LICENSE)
 
 ## Install
 
@@ -46,11 +46,15 @@ Adding those slides up would drift, so WinDuo never tries to know the real angle
 
 A Linux port is the biggest thing missing and the angle estimation carries over unchanged. [CONTRIBUTING.md](CONTRIBUTING.md) has the details, along with the tools for working on the estimator and the shader.
 
+## License
+
+WinDuo is free for any noncommercial purpose — personal use, research, education, hobby projects, all of it — under the [PolyForm Noncommercial License 1.0.0](LICENSE). Commercial use is not permitted without a separate agreement. Any copy or derivative must keep the required attribution to Basel Ashraf and to Mac Duo intact; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
 ## Credit
 
 Built by **[Basel Ashraf](https://baselashraf.com)**.
 
-[Mac Duo](https://github.com/sumimakito/Mac-Duo) by [Makito](https://github.com/sumimakito) is the reference implementation. Its geometry, shader, and state machine are ported here rather than reinvented; [NOTICE](NOTICE) lists which files. The webcam angle estimation is the new part, because the sensor Mac Duo reads is the part that is missing.
+[Mac Duo](https://github.com/sumimakito/Mac-Duo) by [Makito](https://github.com/sumimakito) is the reference implementation, originally released under Apache 2.0. Its geometry, shader, and state machine are ported here rather than reinvented; [NOTICE](NOTICE) lists which files and explains how a noncommercial license here stays compatible with that. The webcam angle estimation is the new part, because the sensor Mac Duo reads is the part that is missing.
 
 ## Support
 
