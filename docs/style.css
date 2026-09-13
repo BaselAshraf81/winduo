@@ -270,19 +270,22 @@ code {
 .snap--head { display: none; }
 
 .flat__inner {
-  max-width: 78rem;
+  max-width: 70rem;
   margin: 0 auto;
   padding: clamp(3rem, 8vh, 6rem) var(--gap) clamp(3.5rem, 9vh, 6.5rem);
   display: grid;
-  gap: clamp(2.5rem, 6vw, 5rem);
+  gap: clamp(2.5rem, 6vw, 4rem);
   grid-template-columns: 1fr;
-  align-items: center;
+  align-items: start;
+}
+
+.flat__say {
+  max-width: 44rem;
 }
 
 @media (min-width: 62rem) {
   .flat__inner {
-    grid-template-columns: minmax(0, 27rem) minmax(0, 1fr);
-    min-height: 100svh;
+    min-height: auto;
   }
 }
 
@@ -460,92 +463,27 @@ code {
 
 /* --- The recording --------------------------------------------------- */
 
-.reel { margin: 0; }
-
-/* The clip is shot on a phone held upright, but at 1080x1920 (16:9) it is
-   proportionally wider than a real iPhone screen (about 9:19.5, 0.4615 wide
-   to tall against the video's 0.5625): using the video's own ratio for the
-   body made the phone read as too wide, not like an actual iPhone. The body
-   is fixed to a true iPhone ratio instead, and the video crops to fit it via
-   .reel__video's object-fit: cover below, the same way a phone-frame mockup
-   trims a source clip's sides rather than letterboxing it.
-
-   .reel__phone is the case: it sizes itself from that fixed ratio plus a
-   fixed bezel, so there is never slack space the screen doesn't fill.
-   .reel__frame is the screen cut-out, sized by padding rather than a
-   separately guessed box. Notch and buttons are struck on top the same way
-   every other drawn mark on this page is: flat shapes, no gradients standing
-   in for metal or glass. */
 .reel {
   width: 100%;
-  max-width: 27rem;
-  margin-inline: auto;
-}
-
-.reel__phone {
-  position: relative;
-  aspect-ratio: 9 / 19.5;
-  padding: 0.55rem;
-  border-radius: 2.4rem;
-  background: var(--blue-deep);
-  border: 1px solid var(--blue-line);
-  box-shadow: 0 26px 50px -24px rgba(0, 0, 0, 0.85);
-}
-
-.reel__notch {
-  position: absolute;
-  top: 0.8rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 38%;
-  height: 0.75rem;
-  border-radius: 0.5rem;
-  background: var(--blue-deep);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.reel__button {
-  position: absolute;
-  background: var(--blue-line);
-  border-radius: 2px;
-  pointer-events: none;
-}
-
-.reel__button--side {
-  right: -2px;
-  top: 22%;
-  width: 3px;
-  height: 11%;
-}
-
-.reel__button--vol-up {
-  left: -2px;
-  top: 16%;
-  width: 3px;
-  height: 6%;
-}
-
-.reel__button--vol-down {
-  left: -2px;
-  top: 24%;
-  width: 3px;
-  height: 6%;
+  max-width: 64rem;
+  margin: 0 auto;
 }
 
 .reel__frame {
-  height: 100%;
-  border-radius: 1.9rem;
-  background: var(--blue-deep);
+  width: 100%;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
+  background: var(--blue-deep);
+  border: 1px solid var(--blue-line);
+  box-shadow: 0 26px 50px -24px rgba(0, 0, 0, 0.85);
 }
 
 .reel__video {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  background: var(--blue-deep);
+  object-fit: contain;
+  background: #071521;
 }
 
 .reel__fallback {
