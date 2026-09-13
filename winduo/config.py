@@ -46,14 +46,20 @@ class Settings:
     trigger_travel: float = 10.0
     #: Further degrees of closing to reach full strength.
     #:
-    #: 60 matches the reference implementation's ramp rate, and it is worth not
-    #: shortening. Dimming deliberately leads blur, so compressing the ramp hits
-    #: the dimming hardest and the picture reaches black before the blur has
-    #: developed enough to see. Windows does cut the display partway through a
-    #: close, which is an argument for a shorter ramp, but the answer to that is
-    #: to let the effect be unfinished rather than to rush it: macOS sleeps
-    #: partway through too.
-    full_effect_travel: float = 60.0
+    #: Worth not shortening. Dimming deliberately leads blur, so compressing the
+    #: ramp hits the dimming hardest and the picture reaches black before the
+    #: blur has developed enough to see. Windows does cut the display partway
+    #: through a close, which is an argument for a shorter ramp, but the answer
+    #: to that is to let the effect be unfinished rather than to rush it: macOS
+    #: sleeps partway through too.
+    #:
+    #: 75 rather than the reference implementation's 60, because the controller
+    #: now holds the perspective at the end of this ramp instead of letting it
+    #: stretch on to a fully shut lid. At 60 the ramp ended at 70 degrees of
+    #: travel and the picture stopped visibly short of the reach a real close
+    #: used to show; 75 ends at 85, which is about as far as the projection goes
+    #: before the eye passes behind the glass and the far edge collapses.
+    full_effect_travel: float = 75.0
     #: Degrees of reopening past the trigger before the effect is released.
     #: Stops the effect flickering when the lid hovers on the threshold.
     release_hysteresis: float = 4.0
@@ -103,7 +109,7 @@ class Settings:
         """A copy with every value inside the range the interface offers."""
         out = Settings(**asdict(self))
         out.trigger_travel = _clamp(out.trigger_travel, 2.0, 40.0)
-        out.full_effect_travel = _clamp(out.full_effect_travel, 5.0, 70.0)
+        out.full_effect_travel = _clamp(out.full_effect_travel, 5.0, 90.0)
         out.release_hysteresis = _clamp(out.release_hysteresis, 0.5, 15.0)
         out.max_blur_radius = _clamp(out.max_blur_radius, 10.0, 200.0)
         out.blur_evenness = _clamp(out.blur_evenness, 0.0, 1.0)

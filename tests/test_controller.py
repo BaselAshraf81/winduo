@@ -287,6 +287,43 @@ class TestFrames:
             assert corners[0] == pytest.approx((0.0, 0.0), abs=1e-6)
             assert corners[1] == pytest.approx((1920.0, 0.0), abs=1e-6)
 
+    def test_the_picture_stops_receding_at_the_end_of_the_ramp(self):
+        # Progress is clamped but the geometry's travel used not to be, so the
+        # perspective kept stretching after blur and dimming had saturated, and
+        # closing far enough drove the eye behind the glass and collapsed the
+        # far edge to a sliver. Everything past the ramp end must be identical.
+        harness = Harness(trigger_travel=8.0, full_effect_travel=40.0)
+        screen = (1920.0, 1080.0)
+        harness.close(to=8.0)
+
+        def far_edge(travel: float) -> float:
+            harness.run(travel, velocity=60.0, frames=90)
+            assert harness.frame is not None
+            corners = harness.controller.corners(harness.frame, screen)
+            return corners[2][0] - corners[3][0]
+
+        at_ramp_end = far_edge(48.0)
+        assert at_ramp_end == pytest.approx(far_edge(70.0), rel=1e-6)
+        assert at_ramp_end == pytest.approx(far_edge(110.0), rel=1e-6)
+        # And it is a real perspective at that point, not a collapsed one.
+        assert 0.3 * 1920.0 < at_ramp_end < 0.95 * 1920.0
+
+    def test_the_preview_sweep_reaches_the_same_end_as_a_real_close(self):
+        # The preview is the only way most people will judge the look, so it
+        # has to arrive at the state a real close arrives at, not short of it.
+        from winduo.app import PreviewSweep
+
+        settings = Settings(trigger_travel=8.0, full_effect_travel=40.0)
+        sweep = PreviewSweep(settings.trigger_travel, settings.full_effect_travel)
+        ramp_end = settings.trigger_travel + settings.full_effect_travel
+        assert sweep.deep >= ramp_end
+
+        harness = Harness(trigger_travel=8.0, full_effect_travel=40.0)
+        harness.close(to=8.0)
+        harness.run(sweep.deep, velocity=sweep.velocity, frames=120)
+        assert harness.frame is not None
+        assert harness.frame.progress == pytest.approx(1.0, abs=1e-6)
+
 
 class TestPolling:
     def test_polls_slowly_while_nothing_is_happening(self):

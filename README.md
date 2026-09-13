@@ -31,7 +31,7 @@ Nothing to hand to test with? `python -m winduo --preview` plays the effect once
 
 ## How it follows the lid
 
-The effect is continuous, not a one-shot animation. It fades in once you have closed about 10°, grows as you keep closing, and reverses if you open back up. Both thresholds are adjustable.
+The effect is continuous, not a one-shot animation. It fades in once you have closed about 10°, grows as you keep closing, reaches full strength at about 85°, and holds there for the rest of the way down. Open back up and it reverses. Both thresholds are adjustable.
 
 The webcam is mounted in the lid, so closing the lid slides the whole camera image down the frame by about 15 pixels per degree. That slide is the measurement.
 

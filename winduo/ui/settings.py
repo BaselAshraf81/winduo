@@ -174,7 +174,7 @@ class SettingsWindow(QWidget):
         layout.addWidget(self._trigger)
 
         self._span = SliderRow(
-            "Reaches full strength over", 5, 70, 60, suffix="\u00b0",
+            "Reaches full strength over", 5, 90, 75, suffix="\u00b0",
             help_text="Degrees of further closing to go from just visible to full.",
         )
         self._span.changed.connect(lambda v: self._apply(full_effect_travel=v))

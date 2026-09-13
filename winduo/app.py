@@ -37,9 +37,19 @@ class PreviewSweep:
     def __init__(self, trigger_travel: float, span: float) -> None:
         self.started_at = time.monotonic()
         self.rest = 0.0
+        # Overshoot the end of the ramp, then hold. The controller clamps the
+        # perspective at the ramp end, so the extra travel changes nothing on
+        # screen; what it buys is certainty that the sweep actually arrives at
+        # full strength and sits there. The spring is critically damped and so
+        # approaches its target asymptotically, and a sweep that stopped exactly
+        # at the ramp end would spend the hold a degree or two short of it,
+        # which is the reason the preview used to stretch visibly less far than
+        # a real close.
         self.deep = trigger_travel + span * 1.15
         self.closing = 1.4
-        self.hold = 0.8
+        # Long enough for the spring to converge onto the clamp and be seen
+        # holding there, which is the frame worth judging the look by.
+        self.hold = 1.0
         self.opening = 0.6
 
     def travel(self, now: float) -> float | None:

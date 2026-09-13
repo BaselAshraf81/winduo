@@ -252,9 +252,25 @@ class EffectController:
         span = max(settings.full_effect_travel, 1.0)
         past_trigger = max(travel - settings.trigger_travel, 0.0)
         progress = min(past_trigger / span, 1.0)
+        # The effect finishes at the end of the ramp and holds there.
+        #
+        # Without this the perspective kept stretching after blur and dimming
+        # had already saturated, because progress is clamped and the geometry's
+        # travel was not. Worse, a lid closed well past the ramp drives the eye
+        # behind the glass, the projection's depth term hits its own floor, and
+        # the far edge collapses: measured on a 1920x1080 screen at the default
+        # perspective, the far edge holds 0.53 of the screen width at 85
+        # degrees of travel and then falls to 0.09 by 95. That cliff is what
+        # reads as the effect overshooting its limits near the end of a close.
+        #
+        # Clamping here rather than in DepthGeometry keeps the ported geometry
+        # honest: it still projects whatever angle it is handed, and the ramp
+        # end, which only this class knows, is what decides the last angle worth
+        # handing it.
+        held_travel = min(travel, settings.trigger_travel + span)
         return Frame(
             start_angle=self._neutral_angle - settings.trigger_travel,
-            current_angle=self._neutral_angle - travel,
+            current_angle=self._neutral_angle - held_travel,
             progress=progress,
             is_final=is_final,
         )
