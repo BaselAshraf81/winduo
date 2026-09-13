@@ -143,12 +143,40 @@
       </li>
       <li class="bar__divider" aria-hidden="true"></li>
       <li>
+        <a class="bar__link bar__link--icon" href="https://x.com/BaselAshraf81" rel="noopener" aria-label="Follow Basel Ashraf on X" title="Follow on X">
+          <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 3l10 10M13 3 3 13"/></svg>
+        </a>
+      </li>
+      <li>
         <!--
-          A dropdown rather than two bare links, so the type gets the same
-          weight and treatment as the rest of the bar instead of shrinking to
-          fit. Reuses the "grab" pattern from the hero's download menu: a
-          native details/summary, keyboard operable and scripting-free.
+          "More work" and "Support" are both dropdowns for the same reason:
+          the type gets the same weight and treatment as the rest of the bar
+          instead of shrinking to fit two bare links. Reuses the "grab"
+          pattern from the hero's download menu, a native details/summary,
+          keyboard operable and scripting-free.
         -->
+        <details class="drop">
+          <summary class="bar__link bar__link--dim">
+            More work
+            <svg class="icon drop__chevron" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 8 10.5l4-4"/></svg>
+          </summary>
+          <div class="drop__menu drop__menu--right">
+            <a class="drop__option" href="https://eigendrum.com" rel="noopener">
+              <span class="drop__name">Eigendrum</span>
+              <span class="drop__note">Draw any shape and hear it as a real vibrating drum.</span>
+            </a>
+            <a class="drop__option" href="https://roadwright.baselashraf.com" rel="noopener">
+              <span class="drop__name">Roadwright</span>
+              <span class="drop__note">Draw a wheel, see the road it needs to roll smoothly.</span>
+            </a>
+            <a class="drop__option" href="https://baselashraf.com" rel="noopener">
+              <span class="drop__name">Everything else</span>
+              <span class="drop__note">The rest of what I build, at baselashraf.com.</span>
+            </a>
+          </div>
+        </details>
+      </li>
+      <li>
         <details class="drop">
           <summary class="bar__link bar__link--dim">
             Support
@@ -232,37 +260,44 @@
     <!--
       Screen recording of the real effect.
       ------------------------------------
-      Drop the file in as docs/demo.mp4 (and optionally docs/demo.webm) and it
-      appears here with no other change needed. Until then the poster frame
-      stands in, so the slot never renders as a broken element.
+      Shot on a phone held upright (1080x1920), so it sits inside a drawn phone
+      body instead of a landscape frame. docs/demo.mp4 and docs/demo.webm are
+      the clip; until they exist the poster frame stands in, so the slot never
+      renders as a broken element.
 
-      Recorded at 16:10 to match the frame below it. Muted, loop, and playsinline
-      so it behaves like a figure rather than a media player, and preload
-      metadata so it costs nothing until someone presses play. Deliberately not
-      autoplaying: it sits beside an interactive demo that already moves, and two
-      things moving in one viewport is one too many.
+      Muted, loop, and playsinline so it behaves like a figure rather than a
+      media player, and preload metadata so it costs nothing until someone
+      presses play. Deliberately not autoplaying: it sits beside an interactive
+      demo that already moves, and two things moving in one viewport is one
+      too many.
     -->
     <figure class="reel">
-      <div class="reel__frame">
-        <video
-          class="reel__video"
-          controls
-          muted
-          loop
-          playsinline
-          preload="metadata"
-          poster="poster.png"
-          width="1600"
-          height="1000"
-        >
-          <source src="demo.webm" type="video/webm">
-          <source src="demo.mp4" type="video/mp4">
-          <p class="reel__fallback">
-            Your browser cannot play the recording.
-            <a href="demo.mp4">Download it instead</a>, or scroll on for a live
-            version you can drag.
-          </p>
-        </video>
+      <div class="reel__phone">
+        <span class="reel__notch" aria-hidden="true"></span>
+        <span class="reel__button reel__button--side" aria-hidden="true"></span>
+        <span class="reel__button reel__button--vol-up" aria-hidden="true"></span>
+        <span class="reel__button reel__button--vol-down" aria-hidden="true"></span>
+        <div class="reel__frame">
+          <video
+            class="reel__video"
+            controls
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            poster="poster.png"
+            width="1080"
+            height="1920"
+          >
+            <source src="demo.webm" type="video/webm">
+            <source src="demo.mp4" type="video/mp4">
+            <p class="reel__fallback">
+              Your browser cannot play the recording.
+              <a href="demo.mp4">Download it instead</a>, or scroll on for a live
+              version you can drag.
+            </p>
+          </video>
+        </div>
       </div>
       <figcaption>
         A lid closing, recorded on a Windows laptop with no angle sensor.
