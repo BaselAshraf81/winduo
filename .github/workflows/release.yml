@@ -62,6 +62,15 @@ jobs:
         # camera frames through the DirectShow/Media Foundation backends in
         # winduo/angle/camera.py; it never opens a video file, so that decoder
         # is dead weight.
+        #
+        # numpy needs the same --collect-all: cv2 imports it at C level, and
+        # PyInstaller's static scan misses numpy's compiled extension
+        # submodules (numpy.core._multiarray_umath and friends) often enough
+        # that "Importing the numpy C-extensions failed" is the single most
+        # common PyInstaller failure with numpy. --copy-metadata numpy is
+        # needed too, because numpy reads its own dist-info at import time to
+        # resolve its version, and a --onefile build has none unless it is
+        # copied in explicitly.
         run: >
           pyinstaller
           --onefile
@@ -74,6 +83,8 @@ jobs:
           --collect-all cv2
           --collect-all OpenGL
           --collect-all dxcam
+          --collect-all numpy
+          --copy-metadata numpy
           --exclude-module PyQt6.QtQml
           --exclude-module PyQt6.QtQuick
           --exclude-module PyQt6.QtQuick3D
