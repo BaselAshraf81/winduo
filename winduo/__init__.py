@@ -5,4 +5,4 @@ Windows (and any device lacking a physical lid-angle sensor) using webcam-based
 angle estimation instead of the Apple HID sensor.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.1.3"
