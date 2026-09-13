@@ -29,3 +29,6 @@ skills-lock.json
 *.log
 Thumbs.db
 desktop.ini
+
+.vercel
+.env*

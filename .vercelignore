@@ -1,0 +1,13 @@
+# This repo is a Python desktop app with a static docs/ site inside it.
+# Vercel only needs docs/; everything else here has confused its Python
+# framework auto-detection in the past (it found Flask-like `app` names in
+# tests/ and tried to run the whole repo as a Python service).
+winduo/
+tests/
+mac-duo-ref/
+*.py
+pyproject.toml
+requirements.txt
+.pytest_cache/
+.ruff_cache/
+.kiro/
