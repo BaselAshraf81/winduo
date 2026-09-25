@@ -15,6 +15,7 @@ still-duration, and its awaiting-release flag are all gone.
 
 from __future__ import annotations
 
+import math
 import time
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -28,7 +29,22 @@ from winduo.log import get_logger
 
 log = get_logger("controller")
 
-__all__ = ["EffectController", "Phase", "Frame"]
+__all__ = ["EffectController", "Phase", "Frame", "tilt_knee"]
+
+
+def tilt_knee(travel: float, limit: float) -> float:
+    """Degrees of tilt for ``travel`` degrees of closing past the trigger.
+
+    ``limit * tanh(travel / limit)``: slope 1 at zero and only a cubic
+    departure from it, so most of the close tracks the lid and the picture
+    holds still in the room, then a smooth approach to ``limit`` so the end of
+    a close cannot stretch the picture into a smear. No kink anywhere.
+    """
+    if travel <= 0.0:
+        return 0.0
+    if limit <= 0.0:
+        return travel
+    return limit * math.tanh(travel / limit)
 
 
 class Phase(Enum):
@@ -252,6 +268,15 @@ class EffectController:
         return self._frame(0.0, is_final=True)
 
     # --- Frame construction ----------------------------------------------
+    #
+    # How far the picture tilts is not how far the lid has closed. For the first
+    # stretch past the trigger they are equal, which is what makes the picture
+    # read as staying put in the room while the glass turns under it. Held all
+    # the way to a nearly shut lid, though, an upright sheet projects onto
+    # almost-flat glass as a smeared, magnified strip of whatever sat above the
+    # hinge. ``tilt_knee`` bends the one into the other: slope 1 at the trigger,
+    # levelling off toward ``tilt_limit``, so the tilt settles on its most
+    # legible pose while blur and dimming carry the rest of the close.
 
     def _frame(self, travel: float, is_final: bool = False) -> Frame:
         settings = self.settings
@@ -273,7 +298,15 @@ class EffectController:
         # honest: it still projects whatever angle it is handed, and the ramp
         # end, which only this class knows, is what decides the last angle worth
         # handing it.
-        held_travel = min(travel, settings.trigger_travel + span)
+        if travel <= settings.trigger_travel:
+            # Short of the trigger the sheet has not turned at all, so this is
+            # flat either way; passing travel through lands the last frame of
+            # an ease-out exactly on neutral.
+            held_travel = travel
+        else:
+            held_travel = settings.trigger_travel + tilt_knee(
+                min(past_trigger, span), settings.tilt_limit
+            )
         return Frame(
             start_angle=self._neutral_angle - settings.trigger_travel,
             current_angle=self._neutral_angle - held_travel,
@@ -283,11 +316,24 @@ class EffectController:
         )
 
     def corners(self, frame: Frame, screen_size: tuple[float, float]):
+        """The flat-sheet corners. The renderer uses ``profile``; this stays for
+        the outline tests and for anything that only needs the silhouette."""
         return self.geometry.corners(
             start_angle=frame.start_angle,
             current_angle=frame.current_angle,
             viewing_distance_ratio=self.settings.viewing_distance,
             recession=self.settings.recession,
+            screen_size=screen_size,
+        )
+
+    def profile(self, frame: Frame, screen_size: tuple[float, float]):
+        """The per-row projection the shader draws, lean included."""
+        return self.geometry.profile(
+            start_angle=frame.start_angle,
+            current_angle=frame.current_angle,
+            viewing_distance_ratio=self.settings.viewing_distance,
+            recession=self.settings.recession,
+            top_lean=self.settings.top_lean,
             screen_size=screen_size,
         )
 

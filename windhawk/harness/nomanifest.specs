@@ -1,0 +1,3 @@
+*endfile:
+crtend.o%s
+

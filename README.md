@@ -10,7 +10,7 @@ Apple has a hinge to read. [Mac Duo](https://github.com/sumimakito/Mac-Duo) has 
   </a>
 </p>
 
-**[winduo.baselashraf.com](https://winduo.baselashraf.com)** · Windows 10 (2004+) and 11 · Free for noncommercial use, [PolyForm Noncommercial 1.0.0](LICENSE)
+**[winduo.baselashraf.com](https://winduo.baselashraf.com)** · Windows 10 (2004+) and 11, Windhawk, Linux on Hyprland · Free for noncommercial use, [PolyForm Noncommercial 1.0.0](LICENSE)
 
 ## Install
 
@@ -33,6 +33,8 @@ Nothing to hand to test with? `python -m winduo --preview` plays the effect once
 
 The effect is continuous, not a one-shot animation. It fades in once you have closed about 10°, grows as you keep closing, reaches full strength at about 85°, and holds there for the rest of the way down. Open back up and it reverses. Both thresholds are adjustable.
 
+The picture behaves like a sheet hinged at the bottom of the screen that stays where it is in the room while the glass turns under it, so for the first part of a close it tilts back exactly as far as the lid has moved. The top of the sheet tips forward toward you a little, which keeps whatever is near the top of the screen readable for longer, and the tilt levels off at about 55° past the trigger instead of stretching the picture into a smear as the lid nears flat. *Top lean* and *Tilt limit* in the settings adjust both.
+
 The webcam is mounted in the lid, so closing the lid slides the whole camera image down the frame by about 15 pixels per degree. That slide is the measurement.
 
 Adding those slides up would drift, so WinDuo never tries to know the real angle. Whenever the lid holds still, that position becomes zero, and the effect runs on movement away from it. This is also why it works with the laptop on a desk, on your lap, or held at any angle.
@@ -44,13 +46,29 @@ Adding those slides up would drift, so WinDuo never tries to know the real angle
 - **Windows turns the screen off when the lid shuts,** so you only see the effect during the closing movement.
 - **Picking the laptop up can trigger it.** Rotating the whole machine looks like closing the lid to a camera. Using a laptop on a train will produce false positives.
 - **A dark room costs accuracy.** Below a usable threshold the effect stays off rather than guessing.
-- Windows only, primary display only.
+- Primary display only.
+
+## Windhawk
+
+[windhawk/winduo.wh.cpp](windhawk/winduo.wh.cpp) is a native C++ build of the same effect packaged as a [Windhawk](https://windhawk.net) mod. It runs in its own process, injects into nothing, and needs no Python. It has no calibration wizard; its readme explains how to tune the one number the wizard would measure. [windhawk/README.md](windhawk/README.md) covers building it outside Windhawk and submitting it.
+
+## Linux (Omarchy / Hyprland)
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/BaselAshraf81/winduo/main/packaging/omarchy/install.sh | bash
+```
+
+This installs the Arch packages it needs, creates a virtualenv under `~/.local/share/winduo`, and starts WinDuo with Hyprland. `packaging/omarchy/uninstall.sh` undoes it. Differences from Windows:
+
+- **The picture is held, not live.** Wayland has no way for the overlay to keep itself out of a screen capture, so WinDuo captures one frame as the lid starts to move (with `grim`) and animates that.
+- **Hyprland only.** The overlay is floated, pinned and sized with `hyprctl dispatch`, which works under both Hyprland config formats. Other compositors are not supported.
+- Exposure is left on auto, and the lid switch is read from `/proc/acpi/button/lid`.
+
+The Linux port has been unit tested but not yet run on real Omarchy hardware. Reports are welcome.
 
 ## Contributing
 
-`pip install -e ".[dev]"` then `pytest`. The tests need no camera, screen, or lid.
-
-A Linux port is the biggest thing missing and the angle estimation carries over unchanged. [CONTRIBUTING.md](CONTRIBUTING.md) has the details, along with the tools for working on the estimator and the shader.
+`pip install -e ".[dev]"` then `pytest`. The tests need no camera, screen, or lid. [CONTRIBUTING.md](CONTRIBUTING.md) has the tools for working on the estimator and the shader.
 
 ## License
 

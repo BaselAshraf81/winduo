@@ -144,6 +144,79 @@ class _MssBackend(Backend):
             sct.close()
 
 
+class _GrimBackend(Backend):
+    """Wayland (wlroots and Hyprland), via ``grim`` writing a PPM to stdout.
+
+    One process per frame, which is slow, around 50 to 100 ms. That is fine
+    here because Wayland has no way for the overlay to exclude itself from
+    capture, so the app holds a single frame on Linux anyway and never asks
+    for a second one.
+    """
+
+    name = "grim"
+    #: Fresh enough for a held frame, and two processes a second rather than
+    #: sixty while the capture is pre-warmed.
+    min_interval = 0.5
+
+    def __init__(self, monitor: int) -> None:
+        self._output: str | None = None
+        self._monitor = monitor
+
+    def start(self, fps: int) -> tuple[int, int]:
+        import shutil
+
+        if not shutil.which("grim"):
+            raise CaptureError("grim is not installed")
+        self._output = _hyprland_output_name(self._monitor)
+        frame = self.grab()
+        if frame is None:
+            raise CaptureError("grim returned no image")
+        return frame.shape[1], frame.shape[0]
+
+    def grab(self) -> np.ndarray | None:
+        import subprocess
+
+        command = ["grim", "-t", "ppm"]
+        if self._output:
+            command += ["-o", self._output]
+        command.append("-")
+        try:
+            data = subprocess.run(command, capture_output=True, timeout=2, check=True).stdout
+        except (OSError, subprocess.SubprocessError):
+            return None
+        return decode_ppm(data)
+
+    def stop(self) -> None:
+        pass
+
+
+def decode_ppm(data: bytes) -> np.ndarray | None:
+    """A binary P6 PPM, as a BGRA array. None if it is not one."""
+    image = cv2.imdecode(np.frombuffer(data, dtype=np.uint8), cv2.IMREAD_COLOR)
+    if image is None:
+        return None
+    return np.ascontiguousarray(cv2.cvtColor(image, cv2.COLOR_BGR2BGRA))
+
+
+def _hyprland_output_name(monitor: int) -> str | None:
+    """The Hyprland output the primary monitor index refers to, if any."""
+    import json
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            ["hyprctl", "monitors", "-j"], capture_output=True, timeout=2, check=True
+        )
+        monitors = json.loads(result.stdout)
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+    focused = [m for m in monitors if m.get("focused")]
+    ordered = focused + [m for m in monitors if not m.get("focused")]
+    if monitor < len(ordered):
+        return ordered[monitor].get("name")
+    return None
+
+
 class ScreenCapture:
     """A capture thread that keeps exactly one frame ready to be uploaded.
 
@@ -229,7 +302,7 @@ class ScreenCapture:
 
     def _run(self) -> None:
         assert self._backend is not None
-        interval = 1.0 / max(self.fps, 1)
+        interval = max(1.0 / max(self.fps, 1), getattr(self._backend, "min_interval", 0.0))
         target = _capped(self.native_size, self.width_cap)
         needs_resize = target != self.native_size
         failures = 0
@@ -286,7 +359,16 @@ def _capped(size: tuple[int, int], width_cap: int) -> tuple[int, int]:
 
 def _first_working_backend(monitor: int, fps: int) -> tuple[Backend, tuple[int, int]]:
     problems: list[str] = []
-    for build in (_DxcamBackend, _MssBackend):
+    import os
+    import sys
+
+    if sys.platform == "win32":
+        builders = (_DxcamBackend, _MssBackend)
+    elif os.environ.get("WAYLAND_DISPLAY"):
+        builders = (_GrimBackend,)
+    else:
+        builders = (_MssBackend,)
+    for build in builders:
         backend = build(monitor)
         try:
             size = backend.start(fps)

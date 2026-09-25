@@ -12,6 +12,7 @@ rather than a convolution, so the cost does not grow with the blur radius.
 from __future__ import annotations
 
 import math
+import sys
 
 import numpy as np
 from OpenGL import GL
@@ -32,6 +33,9 @@ __all__ = ["DepthOverlay", "FrameParams", "configure_surface", "flip_safe_geomet
 #: radius the settings allow, so the blur always reaches real black on every
 #: side instead of smearing the edge pixel outward.
 PADDING_POINTS = 120.0
+
+#: The overlay's window title, which is how the Hyprland helper finds it.
+OVERLAY_TITLE = "WinDuo overlay"
 
 
 def flip_safe_geometry(screen_rect):
@@ -78,7 +82,7 @@ class FrameParams:
     """Everything one drawn frame needs. Plain object; rebuilt every frame."""
 
     __slots__ = (
-        "corners",
+        "profile",
         "blur_strength",
         "dim_strength",
         "blur_floor",
@@ -93,7 +97,7 @@ class FrameParams:
 
     def __init__(
         self,
-        corners,
+        profile,
         blur_strength: float = 0.0,
         dim_strength: float = 0.0,
         blur_floor: float = 0.0,
@@ -105,7 +109,8 @@ class FrameParams:
         reflection_intensity: float = 0.0,
         turn_strength: float = 0.0,
     ) -> None:
-        self.corners = corners
+        #: A ``winduo.effect.geometry.Profile``: where each screen row samples.
+        self.profile = profile
         self.blur_strength = blur_strength
         self.dim_strength = dim_strength
         self.turn_strength = turn_strength
@@ -142,6 +147,7 @@ class _DepthView(QOpenGLWidget):
         self._params: FrameParams | None = None
         self._has_picture = False
         self._failed = False
+
 
     # --- Setup -----------------------------------------------------------
 
@@ -188,6 +194,10 @@ class _DepthView(QOpenGLWidget):
     def release_picture(self) -> None:
         self._pending = None
         self._has_picture = False
+        # Repaint transparent. Invisible behind a zero opacity on Windows, and
+        # the only thing that clears the screen on Wayland, where window
+        # opacity is not supported.
+        self.update()
 
     # --- GL --------------------------------------------------------------
 
@@ -252,8 +262,8 @@ class _DepthView(QOpenGLWidget):
         if params is None or not self._has_picture or self._texture is None:
             return
 
-        matrix = _screen_to_picture(self._screen_size, params.corners)
-        if matrix is None:
+        profile = _profile_uniform(params.profile)
+        if profile is None:
             return
 
         GL.glUseProgram(self._program)
@@ -263,8 +273,9 @@ class _DepthView(QOpenGLWidget):
 
         u = self._uniforms
         GL.glUniform1i(u["uPicture"], 0)
-        # Column-major, which is what GL wants and what the matrix already is.
-        GL.glUniformMatrix3fv(u["uScreenToPicture"], 1, GL.GL_FALSE, matrix)
+        GL.glUniform2fv(u["uProfile"], len(profile) // 2, profile)
+        GL.glUniform1f(u["uProfileEnd"], params.profile.end)
+        GL.glUniform1f(u["uProfileSlope"], params.profile.slope)
         GL.glUniform2f(u["uScreenSize"], *self._screen_size)
         GL.glUniform2f(u["uPaddedOrigin"], -PADDING_POINTS, -PADDING_POINTS)
         GL.glUniform2f(u["uPaddedSize"], *self._padded_points)
@@ -281,10 +292,22 @@ class _DepthView(QOpenGLWidget):
         GL.glUniform1f(u["uHingeGlow"], params.hinge_glow)
         GL.glUniform1f(u["uReflectionIntensity"], params.reflection_intensity)
         GL.glUniform1f(u["uTurn"], params.turn_strength)
+        GL.glUniform1f(u["uOpacity"], self._shader_opacity())
 
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)
         GL.glBindVertexArray(0)
         GL.glUseProgram(0)
+
+    def _shader_opacity(self) -> float:
+        """1 where the window fades itself; the window's opacity elsewhere.
+
+        Wayland compositors ignore window opacity, but Qt still stores the
+        property the fade animations drive, so the shader reads it from there.
+        """
+        if sys.platform == "win32":
+            return 1.0
+        window = self.window()
+        return float(window.windowOpacity()) if window is not None else 1.0
 
     def _upload(self, frame: np.ndarray) -> None:
         if self._texture is None:
@@ -409,10 +432,12 @@ class DepthOverlay:
         # An always-present window is safe here because it is excluded from
         # capture, transparent to input, and fully transparent until there is
         # something to draw.
+        window.setWindowTitle(OVERLAY_TITLE)
         window.show()
         self._excluded = win32.exclude_from_capture(window, True)
         win32.make_click_through(window)
         win32.raise_topmost(window)
+        self._place_on_wayland(geometry_rect)
         self._shown = False
 
         if not view.is_usable:
@@ -420,6 +445,28 @@ class DepthOverlay:
             return False
         log.info("overlay warmed up")
         return True
+
+    def _place_on_wayland(self, geometry_rect, attempt: int = 0) -> None:
+        """Ask Hyprland to float and pin the overlay once it has mapped.
+
+        Mapping is asynchronous, so the window may not be listed yet on the
+        first try; a few retries a fifth of a second apart cover that.
+        """
+        from winduo.render import linux
+
+        if not linux.is_hyprland():
+            return
+        rect = (
+            geometry_rect.x(),
+            geometry_rect.y(),
+            geometry_rect.width(),
+            geometry_rect.height(),
+        )
+        if linux.place_overlay(OVERLAY_TITLE, rect) or attempt >= 10:
+            return
+        from PyQt6.QtCore import QTimer
+
+        QTimer.singleShot(200, lambda: self._place_on_wayland(geometry_rect, attempt + 1))
 
     def _reconfigure(self, geometry_rect, screen_size, picture_size) -> None:
         if self._window is None or self._view is None:
@@ -506,6 +553,7 @@ class DepthOverlay:
                 self._view.release_picture()
 
         fade.finished.connect(finished)
+        self._repaint_while(fade)
         fade.start()
         self._fade = fade
 
@@ -534,8 +582,15 @@ class DepthOverlay:
         fade.setDuration(duration_ms)
         fade.setStartValue(self._window.windowOpacity())
         fade.setEndValue(value)
+        self._repaint_while(fade)
         fade.start()
         self._fade = fade
+
+    def _repaint_while(self, fade: QPropertyAnimation) -> None:
+        """Where the shader does the fading, every step needs a repaint."""
+        if sys.platform != "win32" and self._view is not None:
+            view = self._view
+            fade.valueChanged.connect(lambda _value: view.update())
 
 
 # --- Helpers -------------------------------------------------------------
@@ -560,7 +615,9 @@ def _build_program() -> int:
 
 _UNIFORM_NAMES = (
     "uPicture",
-    "uScreenToPicture",
+    "uProfile",
+    "uProfileEnd",
+    "uProfileSlope",
     "uScreenSize",
     "uPaddedOrigin",
     "uPaddedSize",
@@ -575,6 +632,7 @@ _UNIFORM_NAMES = (
     "uHingeGlow",
     "uReflectionIntensity",
     "uTurn",
+    "uOpacity",
 )
 
 
@@ -582,20 +640,16 @@ def _uniform_locations(program: int) -> dict[str, int]:
     return {name: GL.glGetUniformLocation(program, name) for name in _UNIFORM_NAMES}
 
 
-def _screen_to_picture(screen_size, corners):
-    """The inverse projection, laid out the way ``glUniformMatrix3fv`` wants it."""
-    from winduo.effect.homography import screen_to_picture
-
-    try:
-        matrix = screen_to_picture(screen_size[0], screen_size[1], corners)
-    except (ValueError, np.linalg.LinAlgError):
-        # A degenerate quad, which the geometry's clamps should prevent. Skipping
-        # the frame is better than a division by zero across the whole screen.
+def _profile_uniform(profile):
+    """The profile table as float32, or None if it cannot be drawn."""
+    if profile is None or profile.end <= 0.0:
         return None
-    if not np.all(np.isfinite(matrix)):
+    values = np.asarray(profile.flat(), dtype=np.float32)
+    if values.size < 4 or not np.all(np.isfinite(values)) or np.any(values[1::2] <= 0.0):
+        # A degenerate sheet, which the geometry's clamps should prevent.
+        # Skipping the frame beats dividing by zero across the whole screen.
         return None
-    # GL reads 3x3 uniforms column-major; numpy hands out row-major.
-    return np.ascontiguousarray(matrix.T, dtype=np.float32)
+    return values
 
 
 def _text(message) -> str:

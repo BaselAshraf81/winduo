@@ -48,13 +48,18 @@ def main(argv: list[str] | None = None) -> int:
     options = _parse(argv)
     setup_logging(options.verbose)
 
-    if sys.platform != "win32":
+    if sys.platform != "win32" and not sys.platform.startswith("linux"):
         print(
-            "WinDuo needs Windows. The capture and overlay both use Windows-only "
-            "APIs. See CONTRIBUTING.md for what a Linux port would involve.",
+            "WinDuo runs on Windows, and on Linux under Hyprland.",
             file=sys.stderr,
         )
         return 2
+    if sys.platform.startswith("linux"):
+        import os
+
+        # The overlay has to be a native Wayland window for Hyprland to float
+        # and pin it; under XWayland it would be an X11 window it cannot place.
+        os.environ.setdefault("QT_QPA_PLATFORM", "wayland;xcb")
 
     # Imported here so --version and the platform check cost nothing.
     from PyQt6.QtCore import QTimer

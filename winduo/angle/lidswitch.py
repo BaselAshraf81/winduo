@@ -20,6 +20,7 @@ import sys
 import threading
 from collections.abc import Callable
 from ctypes import wintypes
+from pathlib import Path
 
 from winduo.log import get_logger
 
@@ -44,6 +45,19 @@ _GUID_LIDSWITCH_STATE_CHANGE = (
 
 def is_supported() -> bool:
     return sys.platform == "win32"
+
+
+def read_acpi_lid_state(path: Path) -> bool | None:
+    """Parse an ACPI lid state file: ``state:      open``. True means open."""
+    try:
+        text = path.read_text().strip().lower()
+    except OSError:
+        return None
+    if text.endswith("open"):
+        return True
+    if text.endswith("closed"):
+        return False
+    return None
 
 
 if is_supported():
@@ -108,8 +122,10 @@ class LidSwitch:
         return self._available
 
     def start(self, timeout: float = 2.0) -> bool:
+        if sys.platform.startswith("linux"):
+            return self._start_acpi_poll()
         if not is_supported():
-            log.info("lid switch notifications need Windows")
+            log.info("lid switch notifications need Windows or Linux")
             return False
         if self._thread and self._thread.is_alive():
             return self._available
@@ -121,7 +137,46 @@ class LidSwitch:
         self._ready.wait(timeout)
         return self._available
 
+    # --- Linux ----------------------------------------------------------
+
+    def _start_acpi_poll(self) -> bool:
+        """Poll ``/proc/acpi/button/lid/*/state`` twice a second.
+
+        The ACPI file is the one lid source that needs no privileges and no
+        extra dependency. A quarter-second of lag does not matter here: the
+        lid switch only ends an effect that is already running while the
+        display turns off.
+        """
+        paths = sorted(Path("/proc/acpi/button/lid").glob("*/state"))
+        if not paths:
+            log.info("no ACPI lid switch at /proc/acpi/button/lid")
+            return False
+        self._poll_stop = threading.Event()
+        self._available = True
+
+        def poll() -> None:
+            while not self._poll_stop.wait(0.5):
+                is_open = read_acpi_lid_state(paths[0])
+                if is_open is None:
+                    continue
+                with self._lock:
+                    changed = is_open != self._is_open
+                    self._is_open = is_open
+                if changed:
+                    self._on_change(is_open)
+
+        self._thread = threading.Thread(target=poll, name="winduo-lidswitch", daemon=True)
+        self._thread.start()
+        return True
+
     def stop(self) -> None:
+        poll_stop = getattr(self, "_poll_stop", None)
+        if poll_stop is not None:
+            poll_stop.set()
+            thread, self._thread = self._thread, None
+            if thread:
+                thread.join(timeout=2.0)
+            return
         hwnd = self._hwnd
         if hwnd:
             ctypes.windll.user32.PostMessageW(hwnd, _WM_CLOSE, 0, 0)

@@ -247,6 +247,26 @@ class SettingsWindow(QWidget):
         )
         layout.addWidget(self._perspective)
 
+        self._top_lean = SliderRow(
+            "Top lean", 0, 1, 0.6, suffix="%", display_scale=100,
+            help_text=(
+                "How far the top of the picture tips toward you while the "
+                "bottom stays put. 0 is a flat sheet."
+            ),
+        )
+        self._top_lean.changed.connect(lambda v: self._apply(top_lean=v))
+        layout.addWidget(self._top_lean)
+
+        self._tilt_limit = SliderRow(
+            "Tilt limit", 0, 90, 55, suffix="\u00b0",
+            help_text=(
+                "The most the picture tilts, however far the lid closes. "
+                "0 lets it follow the lid all the way."
+            ),
+        )
+        self._tilt_limit.changed.connect(lambda v: self._apply(tilt_limit=v))
+        layout.addWidget(self._tilt_limit)
+
         # --- Camera
         layout.addWidget(SectionLabel("Camera"))
         self._confidence_floor = SliderRow(
@@ -357,6 +377,8 @@ class SettingsWindow(QWidget):
             self._hinge_glow.set_value(settings.hinge_glow)
             self._reflection.set_value(settings.reflection_intensity)
             self._recession.set_value(settings.recession)
+            self._top_lean.set_value(settings.top_lean)
+            self._tilt_limit.set_value(settings.tilt_limit)
             self._perspective.set_value(
                 perspective_from_distance(settings.viewing_distance)
             )

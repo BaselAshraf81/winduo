@@ -11,6 +11,7 @@ image quality nobody sees and buys a signal that survives fast movement.
 
 from __future__ import annotations
 
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -69,11 +70,21 @@ _MIN_CONTRAST = 8.0
 _CONTRAST_RATIO = 0.6
 
 
+#: Capture backends to try, in order. DirectShow first on Windows: Media
+#: Foundation takes over a second to open on many machines and refuses manual
+#: exposure on more of them. V4L2 is the only sensible choice on Linux.
+_BACKENDS = (
+    ((cv2.CAP_V4L2, "V4L2"),)
+    if sys.platform.startswith("linux")
+    else ((cv2.CAP_DSHOW, "DirectShow"), (cv2.CAP_MSMF, "Media Foundation"))
+)
+
+
 def list_cameras(limit: int = 6) -> list[int]:
     """Indices that open. Slow enough to belong in a settings window, not a hot path."""
     found: list[int] = []
     for index in range(limit):
-        capture = cv2.VideoCapture(index, cv2.CAP_DSHOW)
+        capture = cv2.VideoCapture(index, _BACKENDS[0][0])
         try:
             if capture.isOpened() and capture.read()[0]:
                 found.append(index)
@@ -265,10 +276,7 @@ class CameraAngleSource:
         them. Media Foundation is the fallback because some newer cameras ship no
         DirectShow filter at all.
         """
-        for backend, label in (
-            (cv2.CAP_DSHOW, "DirectShow"),
-            (cv2.CAP_MSMF, "Media Foundation"),
-        ):
+        for backend, label in _BACKENDS:
             capture = cv2.VideoCapture(self._camera_index, backend)
             if not capture.isOpened():
                 capture.release()
@@ -279,7 +287,10 @@ class CameraAngleSource:
             # One frame of buffer, so a read returns what the camera sees now
             # rather than what it saw three frames ago.
             capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-            self._tune_exposure(capture, backend)
+            # The exposure ladder is in Windows' log2-seconds units, which mean
+            # nothing to V4L2; auto exposure stays on there.
+            if backend != cv2.CAP_V4L2:
+                self._tune_exposure(capture, backend)
             ok, _ = capture.read()
             if ok:
                 log.info("camera %d opened via %s", self._camera_index, label)

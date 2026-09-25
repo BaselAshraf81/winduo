@@ -4,8 +4,8 @@ Ported from ``DepthShaders.swift`` (Apache 2.0, Copyright 2026 Makito), with
 Metal's implicit sRGB handling made explicit because a Qt default framebuffer is
 not sRGB-capable.
 
-Each screen pixel is mapped back into the picture through the inverse
-perspective, then takes one sample from a mip pyramid at a level chosen by how
+Each screen pixel is mapped back into the picture through a per-row lookup of
+the projected sheet (see ``DepthGeometry.profile``), then takes one sample from a mip pyramid at a level chosen by how
 much blur belongs at that height. The picture already sits on a black margin, so
 the two blur into each other and the picture's edge needs no special handling.
 
@@ -38,9 +38,16 @@ FRAGMENT = """
 
 uniform sampler2D uPicture;
 
-// Screen point to picture point. The inverse of the forward projection, because
-// the shader walks destination pixels and needs to know where each came from.
-uniform mat3 uScreenToPicture;
+// Screen row to picture row, as a lookup: the sheet leans forward near its top,
+// which no single homography can express. Entry i covers screen row
+// i / (PROFILE_SAMPLES - 1) * uProfileEnd; x is the picture row as a fraction of
+// the height and y the horizontal scale about the centre at that row. Above
+// uProfileEnd the last entry continues at uProfileSlope rows per point, so the
+// blur can still reach the black margin past the top edge.
+#define PROFILE_SAMPLES 128
+uniform vec2 uProfile[PROFILE_SAMPLES];
+uniform float uProfileEnd;
+uniform float uProfileSlope;
 
 uniform vec2 uScreenSize;     // the display, in points
 uniform vec2 uPaddedOrigin;   // top-left of the padded picture, in picture points
@@ -63,6 +70,7 @@ uniform float uDimReach;
 uniform float uHingeGlow;           // 0 to 1, strength of the hinge highlight
 uniform float uReflectionIntensity; // 0 to 1, strength of the reflection band
 uniform float uTurn;                // 0 to 1, how far the picture has turned
+uniform float uOpacity;             // 0 to 1, the fade where windows cannot fade
 
 out vec4 fragColour;
 
@@ -79,16 +87,24 @@ void main() {
     // convention the geometry uses. Metal needed a flip here; OpenGL does not.
     vec2 screenPoint = gl_FragCoord.xy;
 
-    vec3 mapped = uScreenToPicture * vec3(screenPoint, 1.0);
-    if (abs(mapped.z) < 1e-6) {
-        fragColour = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
+    vec2 entry;
+    if (screenPoint.y >= uProfileEnd) {
+        entry = uProfile[PROFILE_SAMPLES - 1];
+        entry.x += (screenPoint.y - uProfileEnd) * uProfileSlope;
+    } else {
+        float position = max(screenPoint.y, 0.0) / uProfileEnd * float(PROFILE_SAMPLES - 1);
+        int i = min(int(position), PROFILE_SAMPLES - 2);
+        entry = mix(uProfile[i], uProfile[i + 1], position - float(i));
     }
-    vec2 picturePoint = mapped.xy / mapped.z;
+    float centre = uScreenSize.x * 0.5;
+    vec2 picturePoint = vec2(
+        centre + (screenPoint.x - centre) / max(entry.y, 1e-4),
+        entry.x * uScreenSize.y
+    );
 
     vec2 unit = (picturePoint - uPaddedOrigin) / uPaddedSize;
     if (unit.x < 0.0 || unit.x > 1.0 || unit.y < 0.0 || unit.y > 1.0) {
-        fragColour = vec4(0.0, 0.0, 0.0, 1.0);
+        fragColour = vec4(0.0, 0.0, 0.0, uOpacity);
         return;
     }
     // Texture row 0 is the top of the screen; picture y runs up.
@@ -158,6 +174,8 @@ void main() {
     // never treats the windows underneath as fully hidden, which would stop
     // them drawing and freeze the very picture being captured. Opaque pixels in
     // a translucent window give the same image without that side effect.
-    fragColour = vec4(linearToSrgb(colour), 1.0);
+    // Premultiplied. uOpacity stays 1 on Windows, where the window's own
+    // opacity does the fade; Wayland has no window opacity, so it fades here.
+    fragColour = vec4(linearToSrgb(colour) * uOpacity, uOpacity);
 }
 """

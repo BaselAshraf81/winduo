@@ -20,9 +20,9 @@ from pathlib import Path
 import numpy as np
 
 from winduo.config import Settings
+from winduo.effect.controller import tilt_knee
 from winduo.effect.geometry import DepthGeometry
 from winduo.effect.gradient import BlurGradient
-from winduo.effect.homography import screen_to_picture
 from winduo.log import get_logger, setup_logging
 
 log = get_logger("stills")
@@ -88,6 +88,9 @@ def render(
     recession: float | None = None,
     span: float | None = None,
     max_dim: float | None = None,
+    top_lean: float | None = None,
+    max_blur_radius: float | None = None,
+    picture_path: Path | None = None,
 ) -> list[Path]:
     from OpenGL import GL
     from PyQt6.QtGui import QOffscreenSurface, QOpenGLContext, QSurfaceFormat
@@ -124,10 +127,23 @@ def render(
         settings.full_effect_travel = span
     if max_dim is not None:
         settings.max_dim = max_dim
+    if top_lean is not None:
+        settings.top_lean = top_lean
+    if max_blur_radius is not None:
+        settings.max_blur_radius = max_blur_radius
     geometry = DepthGeometry()
     gradient = BlurGradient()
     screen_size = (float(width), float(height))
-    picture = test_card(width, height)
+    if picture_path is not None:
+        import cv2
+
+        loaded = cv2.imread(str(picture_path), cv2.IMREAD_COLOR)
+        if loaded is None:
+            raise RuntimeError(f"could not read {picture_path}")
+        loaded = cv2.resize(loaded, (width, height), interpolation=cv2.INTER_AREA)
+        picture = np.ascontiguousarray(cv2.cvtColor(loaded, cv2.COLOR_BGR2BGRA))
+    else:
+        picture = test_card(width, height)
 
     program = _build_program()
     uniforms = _uniform_locations(program)
@@ -181,16 +197,16 @@ def render(
     for step in range(steps):
         progress = step / max(steps - 1, 1)
         travel = trigger + span * progress
-        corners = geometry.corners(
+        tilt = trigger + tilt_knee(span * progress, settings.tilt_limit)
+        profile = geometry.profile(
             start_angle=neutral - trigger,
-            current_angle=neutral - travel,
+            current_angle=neutral - tilt,
             viewing_distance_ratio=settings.viewing_distance,
             recession=settings.recession,
+            top_lean=settings.top_lean,
             screen_size=screen_size,
         )
-        matrix = np.ascontiguousarray(
-            screen_to_picture(width, height, corners).T, dtype=np.float32
-        )
+        table = np.asarray(profile.flat(), dtype=np.float32)
 
         GL.glViewport(0, 0, width, height)
         GL.glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -201,7 +217,9 @@ def render(
         GL.glBindTexture(GL.GL_TEXTURE_2D, texture)
 
         GL.glUniform1i(uniforms["uPicture"], 0)
-        GL.glUniformMatrix3fv(uniforms["uScreenToPicture"], 1, GL.GL_FALSE, matrix)
+        GL.glUniform2fv(uniforms["uProfile"], len(table) // 2, table)
+        GL.glUniform1f(uniforms["uProfileEnd"], profile.end)
+        GL.glUniform1f(uniforms["uProfileSlope"], profile.slope)
         GL.glUniform2f(uniforms["uScreenSize"], *screen_size)
         GL.glUniform2f(uniforms["uPaddedOrigin"], -PADDING, -PADDING)
         GL.glUniform2f(uniforms["uPaddedSize"], *padded)
@@ -219,6 +237,7 @@ def render(
         GL.glUniform1f(uniforms["uHingeGlow"], settings.hinge_glow)
         GL.glUniform1f(uniforms["uReflectionIntensity"], settings.reflection_intensity)
         GL.glUniform1f(uniforms["uTurn"], gradient.turn_strength(progress))
+        GL.glUniform1f(uniforms["uOpacity"], 1.0)
 
         GL.glDrawArrays(GL.GL_TRIANGLES, 0, 3)
 
@@ -264,6 +283,14 @@ def main(argv: list[str] | None = None) -> int:
         help="degrees of further closing to reach full strength",
     )
     parser.add_argument("--max-dim", type=float, default=None)
+    parser.add_argument("--top-lean", type=float, default=None)
+    parser.add_argument("--max-blur-radius", type=float, default=None)
+    parser.add_argument(
+        "--picture",
+        type=Path,
+        default=None,
+        help="an image to use instead of the test card, e.g. a desktop screenshot",
+    )
     options = parser.parse_args(argv)
 
     setup_logging(verbose=True)
@@ -276,6 +303,9 @@ def main(argv: list[str] | None = None) -> int:
         options.recession,
         options.span,
         options.max_dim,
+        options.top_lean,
+        options.max_blur_radius,
+        options.picture,
     )
     print(f"wrote {len(written)} files to {options.out}")
     return 0

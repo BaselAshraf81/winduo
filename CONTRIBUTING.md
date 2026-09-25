@@ -23,17 +23,15 @@ Please record a clip and replay it before and after any estimator change, and sa
 
 ## The Linux port
 
-This is the largest thing WinDuo is missing, and it is a genuinely good project to take on. The angle estimation needs no work at all: `winduo/angle/tracker.py`, `estimator.py`, and `calibration.py` are OpenCV and numpy, and `camera.py` needs only its capture backend swapped for V4L2. The Windows-specific parts are the four below.
+A first port targets Hyprland (and so Omarchy) and lives beside the Windows code rather than replacing it:
 
-**Screen capture.** `winduo/render/capture.py` already has a backend interface with two implementations behind it. A third would use the `xdg-desktop-portal` ScreenCast API over PipeWire, which is the only route that works under both Wayland and X11 and the only one that will keep working. Expect to negotiate a PipeWire stream and import buffers as dmabufs, and expect the portal's permission dialog on first run.
+- **Camera:** `winduo/angle/camera.py` uses V4L2 on Linux and leaves exposure on auto; the tuning ladder is in Windows units.
+- **Capture:** `_GrimBackend` in `winduo/render/capture.py` shells out to `grim`, throttled to two frames a second, because the picture is held rather than live (below).
+- **Overlay:** `winduo/render/linux.py` floats, pins and sizes the overlay with `hyprctl dispatch` once it maps. Dispatchers work under both the hyprlang and the Lua config; `hyprctl keyword` does not. The fade runs in the shader through `uOpacity`, since Wayland ignores window opacity.
+- **Capture exclusion:** there is none on Wayland, so `Engine._draw` only keeps the picture live when the overlay reports it is excluded. Everywhere else it holds the first frame.
+- **Lid:** `/proc/acpi/button/lid/*/state`, polled twice a second.
 
-**An overlay above everything, click-through.** Under Wayland this is `wlr-layer-shell` with the overlay layer and an empty input region, which works on wlroots compositors and Sway but not on GNOME, whose Mutter does not implement layer-shell. Under X11 it is an override-redirect window with an empty `XShape` input region.
-
-**Keeping the overlay out of its own capture.** This is the hard one, and the reason to look at it before writing any other code. `WDA_EXCLUDEFROMCAPTURE` has no portable equivalent. Under Wayland a compositor can be asked to exclude a surface only if it chooses to support it; the portal has no such concept. Without exclusion, a live picture captures the overlay and recurses. The honest fallback is to hold the single frame captured at the trigger, which `live_picture = false` already does and which still looks right, so a first Linux port should probably ship with live rendering disabled rather than blocked on solving this.
-
-**The lid switch.** `/proc/acpi/button/lid/*/state` on most machines, or the `SW_LID` evdev switch. Simpler than the Windows path.
-
-Keep the platform split at the module boundaries that already exist. `winduo/render/capture.py` picks a backend at runtime and `winduo/render/win32.py` is the only file that imports `ctypes.windll`. A `winduo/render/linux.py` beside it, with `main.py` choosing between them, is the shape to aim for.
+Still open, and good places to help: a `wlr-layer-shell` overlay so other wlroots compositors work, a PipeWire ScreenCast backend for GNOME and KDE, reading an IIO hinge sensor (`hid-sensor-custom-intel-hinge`) where the firmware has one, and a run on real Omarchy hardware.
 
 ## The demo recording on the site
 

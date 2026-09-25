@@ -7,6 +7,7 @@ or a dropped capture backend cannot leave the effect stuck on screen.
 
 from __future__ import annotations
 
+import sys
 import time
 
 from PyQt6.QtCore import QObject, Qt, QTimer, pyqtSignal
@@ -148,7 +149,7 @@ class Engine(QObject):
             return status.problem
         if not status.running:
             return "Starting the camera."
-        if not win32.supports_capture_exclusion():
+        if sys.platform == "win32" and not win32.supports_capture_exclusion():
             return (
                 "Windows 10 version 2004 or later is needed to keep the effect "
                 "out of its own capture."
@@ -253,7 +254,7 @@ class Engine(QObject):
         boost = gradient.motion_boost(frame.velocity) * frame.progress
         blur_strength = min(gradient.blur_strength(frame.progress) + boost, 1.0)
         params = FrameParams(
-            corners=self.controller.corners(frame, self._screen_size),
+            profile=self.controller.profile(frame, self._screen_size),
             blur_strength=blur_strength,
             dim_strength=gradient.dim_strength(frame.progress),
             turn_strength=gradient.turn_strength(frame.progress),
@@ -267,7 +268,13 @@ class Engine(QObject):
         )
         # A held picture takes the first frame and nothing after it, which is what
         # "live rendering off" means.
-        wants_frame = settings.live_picture or not self.overlay.has_picture
+        #
+        # Live only when the overlay is kept out of its own capture. Without
+        # that (Wayland, or Windows before 2004) every new frame would contain
+        # the overlay's previous frame, and the picture would feed back into
+        # itself until it went black.
+        live = settings.live_picture and self.overlay.excludes_itself_from_capture
+        wants_frame = live or not self.overlay.has_picture
         new_frame = (
             self.capture.take() if self.capture is not None and wants_frame else None
         )
