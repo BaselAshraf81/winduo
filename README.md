@@ -6,7 +6,7 @@ Apple has a hinge to read. [Mac Duo](https://github.com/sumimakito/Mac-Duo) has 
 
 <p align="center">
   <a href="https://winduo.baselashraf.com">
-    <img src="docs/demo.gif" alt="A laptop lid closing, the screen leaning back, blurring and dimming, recorded on a Windows laptop with no angle sensor." width="240">
+    <img src="docs/demo.gif" alt="A laptop lid closing while the screen leans back, blurs and dims, rendered through WinDuo's own shader." width="270">
   </a>
 </p>
 
