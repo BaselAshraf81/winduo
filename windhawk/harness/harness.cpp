@@ -7,6 +7,9 @@
 //   g++ -std=c++23 -O2 harness.cpp -o winduo-harness.exe <libs from @compilerOptions>
 //   winduo-harness.exe [--preview] [--seconds N] [Setting=Value ...]
 
+// Windhawk's toolchain targets Windows 10; match it.
+#define _WIN32_WINNT 0x0A00
+#define WINVER 0x0A00
 #include <windows.h>
 
 #include <cstdarg>
