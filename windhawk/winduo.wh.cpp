@@ -64,7 +64,7 @@ whatever is on screen, then the switch can be turned back off.
   $name: Full strength after (further degrees)
 - ReleaseHysteresis: 4
   $name: Release margin (degrees)
-- TiltLimit: 55
+- TiltLimit: 70
   $name: Tilt limit (degrees)
   $description: The most the picture tilts, however far the lid closes. 0 follows the lid all the way.
 - TopLean: 60
@@ -171,7 +171,7 @@ struct Settings {
     double triggerTravel = 10;
     double fullEffectTravel = 75;
     double releaseHysteresis = 4;
-    double tiltLimit = 55;
+    double tiltLimit = 70;
     double topLean = 0.6;
     double viewingDistance = 3.0;
     double maxBlurRadius = 90;
@@ -265,17 +265,14 @@ static bool BuildProfile(double startAngle, double currentAngle,
     if (width <= 0 || height <= 0) {
         return false;
     }
-    double start = startAngle * kPi / 180;
-    double current = currentAngle * kPi / 180;
     double travel = std::max(startAngle - currentAngle, 0.0);
     double separation = std::min(travel, kMaxSeparation) * kPi / 180;
     double lean = Clamp01(topLean);
 
-    double reach = height * viewingDistance + height / 2 * std::cos(start);
-    double rise = height / 2 * std::sin(start);
-    double along = reach * std::cos(current) + rise * std::sin(current);
-    double depth = std::max(reach * std::sin(current) - rise * std::cos(current),
-                            height * kMinDepthFraction);
+    // The eye stays straight in front of the middle of the screen; only the
+    // sheet turns back, so the picture recedes and never stretches upward.
+    double along = height / 2;
+    double depth = std::max(height * viewingDistance, height * kMinDepthFraction);
 
     const int steps = kProfileSamples * 4;
     double ds = height / steps;
@@ -291,7 +288,9 @@ static bool BuildProfile(double startAngle, double currentAngle,
         b += std::sin(angle) * ds;
         double scale = depth / (depth + b);
         arc[i + 1] = (i + 1) * ds / height;
-        rows[i + 1] = std::max(along + (u - along) * scale, rows[i]);
+        // Never above where the row started, and never folding back.
+        double projected = std::min(along + (u - along) * scale, arc[i + 1] * height);
+        rows[i + 1] = std::max(projected, rows[i]);
         scales[i + 1] = scale;
     }
     double end = rows[steps];
