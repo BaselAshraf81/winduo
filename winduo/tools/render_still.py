@@ -91,7 +91,6 @@ def render(
     top_lean: float | None = None,
     max_blur_radius: float | None = None,
     picture_path: Path | None = None,
-    tilt_limit: float | None = None,
 ) -> list[Path]:
     from OpenGL import GL
     from PyQt6.QtGui import QOffscreenSurface, QOpenGLContext, QSurfaceFormat
@@ -130,8 +129,6 @@ def render(
         settings.max_dim = max_dim
     if top_lean is not None:
         settings.top_lean = top_lean
-    if tilt_limit is not None:
-        settings.tilt_limit = tilt_limit
     if max_blur_radius is not None:
         settings.max_blur_radius = max_blur_radius
     geometry = DepthGeometry()
@@ -288,7 +285,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-dim", type=float, default=None)
     parser.add_argument("--top-lean", type=float, default=None)
     parser.add_argument("--max-blur-radius", type=float, default=None)
-    parser.add_argument("--tilt-limit", type=float, default=None)
     parser.add_argument(
         "--picture",
         type=Path,
@@ -310,7 +306,6 @@ def main(argv: list[str] | None = None) -> int:
         options.top_lean,
         options.max_blur_radius,
         options.picture,
-        options.tilt_limit,
     )
     print(f"wrote {len(written)} files to {options.out}")
     return 0

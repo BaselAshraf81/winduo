@@ -191,10 +191,8 @@ class TestProfile:
         corners = DepthGeometry().corners(100.0, 60.0, 3.0, 1.0, self.SIZE)
         matrix = screen_to_picture(*self.SIZE, corners)
         profile = self._profile(60.0, 0.0)
-        # Only rows the picture covers. Above its top edge is black margin,
-        # where the table only extrapolates far enough for the blur to fade.
         for x in (0.0, 400.0, 800.0, 1500.0):
-            for y in (0.0, 120.0, 400.0, profile.end - 1.0):
+            for y in (0.0, 120.0, 500.0, 999.0):
                 mapped = matrix @ np.array([x, y, 1.0])
                 expected = mapped[:2] / mapped[2]
                 got = profile.picture_point(x, y)
@@ -227,21 +225,6 @@ class TestProfile:
             assert leaning.picture_point(300.0, y) == pytest.approx(
                 flat.picture_point(300.0, y), abs=0.5
             )
-
-    def test_nothing_ever_stretches_upward(self):
-        # The picture only recedes: every picture row lands at or below the
-        # screen row it started on, and the top edge drops further the more
-        # the lid closes.
-        ends = []
-        for current in (98.0, 90.0, 70.0, 50.0, 30.0):
-            for lean in (0.0, 0.6, 1.0):
-                profile = self._profile(current, lean)
-                samples = len(profile.table) - 1
-                for i, (row, _) in enumerate(profile.table):
-                    screen_row = profile.end * i / samples
-                    assert screen_row <= row * self.SIZE[1] + 1e-6
-            ends.append(self._profile(current, 0.6).end)
-        assert all(b < a for a, b in zip(ends, ends[1:], strict=False))
 
     def test_rows_are_monotonic_so_the_picture_never_folds(self):
         for current in (95.0, 70.0, 40.0, 15.0):

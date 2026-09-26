@@ -258,7 +258,7 @@ class SettingsWindow(QWidget):
         layout.addWidget(self._top_lean)
 
         self._tilt_limit = SliderRow(
-            "Tilt limit", 0, 90, 70, suffix="\u00b0",
+            "Tilt limit", 0, 90, 55, suffix="\u00b0",
             help_text=(
                 "The most the picture tilts, however far the lid closes. "
                 "0 lets it follow the lid all the way."

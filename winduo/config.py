@@ -109,7 +109,7 @@ class Settings:
     #: lid goes. The tilt follows the lid one for one at first, so the picture
     #: holds still in the room, then eases toward this. 0 turns the easing off
     #: and tilts all the way to the end of the ramp.
-    tilt_limit: float = 70.0
+    tilt_limit: float = 55.0
 
     # --- Neutral detection ----------------------------------------------
     #: How long the lid must hold still before its position becomes neutral.

@@ -33,7 +33,7 @@ Nothing to hand to test with? `python -m winduo --preview` plays the effect once
 
 The effect is continuous, not a one-shot animation. It fades in once you have closed about 10°, grows as you keep closing, reaches full strength at about 85°, and holds there for the rest of the way down. Open back up and it reverses. Both thresholds are adjustable.
 
-The picture behaves like a sheet hinged at the bottom of the screen that tilts back, away from you, as far as the lid has closed, so it reads as staying put while the lid comes down. It only ever recedes: the top edge narrows and drops, and nothing stretches upward. The top of the sheet tips forward toward you a little, which keeps whatever is near the top of the screen readable for longer, and the tilt levels off at about 70° past the trigger. *Top lean* and *Tilt limit* in the settings adjust both.
+The picture behaves like a sheet hinged at the bottom of the screen that stays where it is in the room while the glass turns under it, so for the first part of a close it tilts back exactly as far as the lid has moved. The top of the sheet tips forward toward you a little, which keeps whatever is near the top of the screen readable for longer, and the tilt levels off at about 55° past the trigger instead of stretching the picture into a smear as the lid nears flat. *Top lean* and *Tilt limit* in the settings adjust both.
 
 The webcam is mounted in the lid, so closing the lid slides the whole camera image down the frame by about 15 pixels per degree. That slide is the measurement.
 

@@ -42,36 +42,6 @@ class DepthGeometry:
     # eye ends up behind the glass.
     min_depth_fraction: float = 0.1
 
-    def _view(
-        self,
-        start_angle: float,
-        current_angle: float,
-        viewing_distance_ratio: float,
-        recession: float,
-        height: float,
-    ) -> tuple[float, float, float]:
-        """How far the sheet has turned back, and where the eye is.
-
-        The eye sits straight in front of the middle of the screen and stays
-        there, as it does for someone looking at the screen they are closing.
-        Only the sheet moves: it turns back about the hinge by the angle the lid
-        has travelled, away from the viewer, so the picture recedes into the
-        screen. Its top edge narrows and drops; nothing ever stretches upward.
-
-        An eye held fixed in the *room* instead ends up looking at the glass
-        steeply from above by the end of a close, and projecting onto glass seen
-        that obliquely magnifies the picture upward. That is the stretch this
-        placement avoids.
-
-        Returns the separation in radians, the eye's height along the glass,
-        and its distance in front of it.
-        """
-        travel = max(start_angle - current_angle, 0.0)
-        separation = math.radians(min(recession * travel, self.max_separation_degrees))
-        along = height / 2
-        depth = max(height * viewing_distance_ratio, height * self.min_depth_fraction)
-        return separation, along, depth
-
     def corners(
         self,
         start_angle: float,
@@ -93,8 +63,20 @@ class DepthGeometry:
         if width <= 0 or height <= 0:
             raise ValueError("screen_size must be positive")
 
-        separation, along, depth = self._view(
-            start_angle, current_angle, viewing_distance_ratio, recession, height
+        start = math.radians(start_angle)
+        current = math.radians(current_angle)
+        travel = max(start_angle - current_angle, 0.0)
+        separation = math.radians(min(recession * travel, self.max_separation_degrees))
+
+        # The eye in world axes, hinge at the origin.
+        reach = height * viewing_distance_ratio + height / 2 * math.cos(start)
+        rise = height / 2 * math.sin(start)
+
+        # The same eye, measured along the glass and away from it.
+        along = reach * math.cos(current) + rise * math.sin(current)
+        depth = max(
+            reach * math.sin(current) - rise * math.cos(current),
+            height * self.min_depth_fraction,
         )
 
         half = width / 2
@@ -151,10 +133,19 @@ class DepthGeometry:
             raise ValueError("screen_size must be positive")
         samples = max(int(samples), 2)
 
-        separation, along, depth = self._view(
-            start_angle, current_angle, viewing_distance_ratio, recession, height
-        )
+        start = math.radians(start_angle)
+        current = math.radians(current_angle)
+        travel = max(start_angle - current_angle, 0.0)
+        separation = math.radians(min(recession * travel, self.max_separation_degrees))
         lean = min(max(top_lean, 0.0), 1.0)
+
+        reach = height * viewing_distance_ratio + height / 2 * math.cos(start)
+        rise = height / 2 * math.sin(start)
+        along = reach * math.cos(current) + rise * math.sin(current)
+        depth = max(
+            reach * math.sin(current) - rise * math.cos(current),
+            height * self.min_depth_fraction,
+        )
 
         # Walk up the sheet by arc length. Below LEAN_START it is the flat sheet;
         # above, its angle to the glass eases off smoothly toward zero.
@@ -174,12 +165,7 @@ class DepthGeometry:
             arc.append((i + 1) * ds / height)
             # Monotonic by construction for any eye in front of the glass; the
             # max() only guards the table against float noise at tiny angles.
-            # Never above where the row started: the picture only recedes. The
-            # eye at mid-height would otherwise lift the rows near the hinge by
-            # under a pixel at the very start of a turn. The min of two rising
-            # curves still rises, so the table stays invertible.
-            projected = min(along + (u - along) * scale, arc[-1] * height)
-            rows.append(max(projected, rows[-1]))
+            rows.append(max(along + (u - along) * scale, rows[-1]))
             scales.append(scale)
 
         end = rows[-1]

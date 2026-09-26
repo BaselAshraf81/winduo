@@ -18,7 +18,7 @@
 
 static std::map<std::wstring, int> g_intSettings = {
     {L"TriggerTravel", 10},  {L"FullEffectTravel", 75}, {L"ReleaseHysteresis", 4},
-    {L"TiltLimit", 70},      {L"TopLean", 60},          {L"ViewingDistance", 30},
+    {L"TiltLimit", 55},      {L"TopLean", 60},          {L"ViewingDistance", 30},
     {L"MaxBlurRadius", 90},  {L"MaxDim", 85},           {L"DimReach", 50},
     {L"HingeGlow", 50},      {L"Reflection", 50},       {L"LivePicture", 1},
     {L"DegreesPerPixel", 269}, {L"NeutralAngle", 100},  {L"CameraIndex", 0},
