@@ -245,7 +245,7 @@ class EffectRenderer:
 def draw_desktop(width: int = SCREEN_W, height: int = SCREEN_H) -> np.ndarray:
     """A made-up desktop in the brand's colours. BGRA."""
     from PyQt6.QtCore import QPointF, QRectF, Qt
-    from PyQt6.QtGui import QBrush, QColor, QImage, QLinearGradient, QPainter, QPen, QRadialGradient
+    from PyQt6.QtGui import QBrush, QColor, QImage, QLinearGradient, QPainter, QRadialGradient
 
     img = QImage(width, height, QImage.Format.Format_ARGB32)
     p = QPainter(img)
@@ -355,8 +355,8 @@ class Reel:
         return self._cache[key]
 
     def paint(self, p, t: float) -> None:
-        from PyQt6.QtCore import QPointF, QRectF, Qt
-        from PyQt6.QtGui import QColor, QLinearGradient, QRadialGradient, QBrush
+        from PyQt6.QtCore import QPointF
+        from PyQt6.QtGui import QBrush, QColor, QLinearGradient, QRadialGradient
 
         # Ground: the site's flat, lit from the top left.
         g = QLinearGradient(0, 0, W * 0.6, H)
@@ -500,7 +500,14 @@ class Reel:
     # 4.6 - 10.6 s: the effect itself, on a laptop that actually closes.
     def scene_laptop(self, p, t: float) -> None:
         from PyQt6.QtCore import QPointF, QRectF, Qt
-        from PyQt6.QtGui import QBrush, QColor, QLinearGradient, QPainterPath, QPen, QPolygonF, QTransform
+        from PyQt6.QtGui import (
+            QBrush,
+            QColor,
+            QLinearGradient,
+            QPen,
+            QPolygonF,
+            QTransform,
+        )
 
         if t < 4.5 or t > 10.55:
             return
@@ -613,8 +620,8 @@ class Reel:
 
     # 10.4 - 12.9 s: where it runs.
     def scene_platforms(self, p, t: float) -> None:
-        from PyQt6.QtCore import QPointF, QRectF, Qt
-        from PyQt6.QtGui import QColor, QPen
+        from PyQt6.QtCore import QRectF, Qt
+        from PyQt6.QtGui import QColor
 
         if t < 10.4 or t > 13.0:
             return

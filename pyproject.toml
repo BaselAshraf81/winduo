@@ -77,6 +77,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["E501"]
 "winduo/render/shaders.py" = ["E501"]
+# Drawing code: long coordinate expressions, and GL bound to a local named GL.
+"tools/showreel/*" = ["E501", "N806"]
 # The ctypes structures deliberately carry the names the Windows API gives them,
 # so a reader can look them up.
 "winduo/angle/lidswitch.py" = ["N801"]
