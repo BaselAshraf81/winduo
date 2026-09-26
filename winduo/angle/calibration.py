@@ -76,7 +76,14 @@ def fit(
         denominator = ratio * s3 * s3 - s2 * s2
         if abs(denominator) > 1e-9:
             candidate = (s2 - ratio * s3) / denominator
-            curvature = max(-_MAX_CURVATURE, min(_MAX_CURVATURE, candidate))
+            # The fixed bound alone is not enough on a camera that shifts a
+            # lot per degree: at -0.004 and a 400 px sweep, 1 + c * s goes
+            # negative before the lid is shut, so the curve turns back on
+            # itself and the scale comes out negative. Keeping the slope
+            # (1 + 2 * c * s) above 0.2 across the whole sweep keeps the fit
+            # monotonic and positive however far the camera moves.
+            floor = max(-_MAX_CURVATURE, -0.4 / s3)
+            curvature = max(floor, min(_MAX_CURVATURE, candidate))
     else:
         log.info(
             "halfway anchor at %.1f px is outside the usable band of a %.1f px "

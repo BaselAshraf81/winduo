@@ -36,6 +36,11 @@ hooks nothing.
 - **The camera stays on while the mod is enabled**, so its privacy light stays
   lit. Frames are measured in memory and never stored or sent anywhere. Disable
   the mod to turn the camera off.
+- **Camera permission.** The mod reads the camera as an ordinary desktop app
+  (it runs inside `windhawk.exe`), so Windows shows no prompt. It needs
+  *Settings > Privacy & security > Camera > Let desktop apps access your
+  camera* turned on, and `windhawk.exe` then appears in that list while the
+  mod runs. If the setting is off, the mod log says so.
 - It needs Windows 10 version 2004 or later, so the overlay can keep itself out
   of its own screen capture.
 - Accuracy depends on the room: a lit room with some detail in front of the
@@ -823,8 +828,14 @@ static IMFSourceReader* OpenCamera(int index, UINT32& width, UINT32& height,
     if (index >= (int)count) {
         index = 0;
     }
-    if (FAILED(devices[index]->ActivateObject(IID_PPV_ARGS(&source)))) {
-        Wh_Log(L"camera %d would not open", index);
+    if (HRESULT hr = devices[index]->ActivateObject(IID_PPV_ARGS(&source)); FAILED(hr)) {
+        if (hr == E_ACCESSDENIED) {
+            Wh_Log(L"camera access is off: turn on Settings > Privacy > Camera > "
+                   L"\"Let desktop apps access your camera\"");
+        } else {
+            Wh_Log(L"camera %d would not open (0x%08X); another app may be using it",
+                   index, (unsigned)hr);
+        }
         goto done;
     }
     MFCreateAttributes(&readerAttrs, 1);

@@ -233,3 +233,18 @@ class TestSession:
         self.drive(session, [50.0] * 10)
         assert session.shift == before
         assert session.stage is Stage.DONE
+
+
+def test_a_long_sweep_with_a_late_halfway_still_fits_a_positive_scale():
+    # A camera that shifts a lot per degree: a 450 px sweep, with the halfway
+    # anchor recorded late. The old fixed curvature floor of -0.004 made
+    # 1 + c * s negative at the closed end, and the fit failed with "the
+    # sweep produced an impossible scale".
+    from winduo.angle.calibration import fit
+
+    result = fit(viewing_angle=100.0, shift_at_halfway=330.0, shift_at_closed=450.0, track_width=320)
+    assert result.degrees_per_pixel > 0
+    assert result.travel_for_shift(450.0, 320) == pytest.approx(100.0, rel=1e-6)
+    # Monotonic over the whole sweep: more shift always means more travel.
+    values = [result.travel_for_shift(float(s), 320) for s in range(0, 451, 10)]
+    assert all(b > a for a, b in zip(values, values[1:], strict=False))
